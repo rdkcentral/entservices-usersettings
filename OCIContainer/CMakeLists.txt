@@ -100,7 +100,7 @@ if (RDK_SERVICE_L2_TEST)
        message ("linking mock libraries ${TESTMOCKLIB_LIBRARIES} library")
        target_link_libraries(${MODULE_NAME} PRIVATE ${TESTMOCKLIB_LIBRARIES})
        target_include_directories(${MODULE_NAME} PRIVATE 
-       ${CMAKE_SOURCE_DIR}/../../entservices-infra/entservices-testframework/Tests/mocks
+       ${CMAKE_SOURCE_DIR}/../../entservices-usersettings/entservices-testframework/Tests/mocks
        )
    else (TESTMOCKLIB_LIBRARIES)
        message ("Require ${TESTMOCKLIB_LIBRARIES} library")
