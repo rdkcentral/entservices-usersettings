@@ -38,12 +38,7 @@ endif()
 
 option(PLUGIN_USERSETTINGS "Include UserSettings plugin" ON)
 if(PLUGIN_USERSETTINGS)
-    add_subdirectory(UserSettings)
-endif()
-
-option(PLUGIN_USERSETTINGS "Include UserSettings plugin" ON)
-if(PLUGIN_USERSETTINGS)
-    add_subdirectory(UserSettings)
+    add_subdirectory(plugin)
 endif()
 
 
