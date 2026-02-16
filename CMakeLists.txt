@@ -19,6 +19,7 @@
 
 cmake_minimum_required(VERSION 3.3)
 
+
 find_package(WPEFramework)
 
 # All packages that did not deliver a CMake Find script (and some deprecated scripts that need to be removed)
@@ -34,8 +35,8 @@ if(COMCAST_CONFIG)
 endif()
 
 
-# Only include usersettings plugin and its dependencies
 
+# Only include usersettings plugin and its dependencies
 option(PLUGIN_USERSETTINGS "Include UserSettings plugin" ON)
 if(PLUGIN_USERSETTINGS)
     add_subdirectory(plugin)

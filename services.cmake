@@ -33,8 +33,3 @@ endif()
 add_definitions(-DRDK_LOG_MILESTONE)
 add_definitions(-DUSE_DS)
 add_definitions(-DENABLE_DEEP_SLEEP)
-endif()
-
-if(BUILD_ENABLE_ERM)
-	add_definitions(-DENABLE_ERM)
-endif()
