@@ -33,35 +33,18 @@ if(COMCAST_CONFIG)
     include(services.cmake)
 endif()
 
-option(PLUGIN_OCICONTAINER "Include OCIContainer plugin" OFF)
 
-# Library installation section
-string(TOLOWER ${NAMESPACE} STORAGE_DIRECTORY)
+# Only include usersettings plugin and its dependencies
 
-# for writing pc and config files
-include(CmakeHelperFunctions)
-
-
-if(RDK_SERVICE_L2_TEST)
-    add_subdirectory(Tests/L2Tests)
+option(PLUGIN_USERSETTINGS "Include UserSettings plugin" ON)
+if(PLUGIN_USERSETTINGS)
+    add_subdirectory(UserSettings)
 endif()
 
-option(DISABLE_SECURITY_TOKEN "Disable security token" OFF)
-
-
-if(RDK_SERVICES_L1_TEST)
-    add_subdirectory(Tests/L1Tests)
+option(PLUGIN_USERSETTINGS "Include UserSettings plugin" ON)
+if(PLUGIN_USERSETTINGS)
+    add_subdirectory(UserSettings)
 endif()
-
-
-if(DISABLE_SECURITY_TOKEN)
-    add_definitions(-DDISABLE_SECURITY_TOKEN)
-endif()
-
-add_subdirectory(UserSettings)
-
-
-
 
 
 if(WPEFRAMEWORK_CREATE_IPKG_TARGETS)
