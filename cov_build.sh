@@ -19,7 +19,7 @@ echo "==========================================================================
 echo "building usersettings plugin"
 
 cd ${GITHUB_WORKSPACE}
-cmake -G Ninja -S "$GITHUB_WORKSPACE" -B build/entservices-infra \
+cmake -G Ninja -S "$GITHUB_WORKSPACE" -B build/entservices-usersettings \
 -DUSE_THUNDER_R4=ON \
 -DCMAKE_INSTALL_PREFIX="$GITHUB_WORKSPACE/install/usr" \
 -DCMAKE_MODULE_PATH="$GITHUB_WORKSPACE/install/tools/cmake" \
