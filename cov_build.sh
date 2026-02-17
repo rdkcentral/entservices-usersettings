@@ -5,11 +5,21 @@ set -e
 GITHUB_WORKSPACE="${PWD}"
 ls -la ${GITHUB_WORKSPACE}
 ############################
-# Build entservices-infra
-echo "buliding entservices-infra"
+
+# Build entservices-usersettings
+echo "building entservices-usersettings"
 
 cd ${GITHUB_WORKSPACE}
-cmake -G Ninja -S "$GITHUB_WORKSPACE" -B build/entservices-infra \
+cmake -G Ninja -S "$GITHUB_WORKSPACE" -B build/entservices-usersettings \
+
+
+cmake --build build/entservices-usersettings --target install
+echo "======================================================================================"
+# Build usersettings plugin only
+echo "building usersettings plugin"
+
+cd ${GITHUB_WORKSPACE}
+cmake -G Ninja -S "$GITHUB_WORKSPACE" -B build/entservices-usersettings \
 -DUSE_THUNDER_R4=ON \
 -DCMAKE_INSTALL_PREFIX="$GITHUB_WORKSPACE/install/usr" \
 -DCMAKE_MODULE_PATH="$GITHUB_WORKSPACE/install/tools/cmake" \
@@ -21,10 +31,7 @@ cmake -G Ninja -S "$GITHUB_WORKSPACE" -B build/entservices-infra \
 -DRDK_SERVICES_COVERITY=ON \
 -DRDK_SERVICES_L1_TEST=ON \
 -DDS_FOUND=ON \
--DPLUGIN_USBDEVICE=ON \
--DPLUGIN_USB_MASS_STORAGE=ON \
--DPLUGIN_OCICONTAINER=ON \
--DPLUGIN_TELEMETRY=ON \
+-DPLUGIN_USERSETTINGS=ON \
 -DCMAKE_CXX_FLAGS="-DEXCEPTIONS_ENABLE=ON \
 -I ${GITHUB_WORKSPACE}/entservices-testframework/Tests/headers \
 -I ${GITHUB_WORKSPACE}/entservices-testframework/Tests/headers/audiocapturemgr \
@@ -63,7 +70,6 @@ cmake -G Ninja -S "$GITHUB_WORKSPACE" -B build/entservices-infra \
 -DUSE_DRM_SCREENCAPTURE -DHAS_API_SYSTEM -DHAS_API_POWERSTATE \
 -DHAS_RBUS -DDISABLE_SECURITY_TOKEN -DENABLE_DEVICE_MANUFACTURER_INFO -DUSE_THUNDER_R4=ON -DTHUNDER_VERSION=4 -DTHUNDER_VERSION_MAJOR=4 -DTHUNDER_VERSION_MINOR=4" \
 
-
-cmake --build build/entservices-infra --target install
+cmake --build build/usersettings --target install
 echo "======================================================================================"
 exit 0
