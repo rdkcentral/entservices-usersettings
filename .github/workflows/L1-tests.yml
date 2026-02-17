@@ -132,13 +132,19 @@ jobs:
         with:
           path: entservices-usersettings
 
+      - name: Checkout entservices-persistentstore
+        if: ${{ inputs.caller_source == 'local' }}
+        uses: actions/checkout@v3
+        with:
+          path: entservices-persistentstore
+
       - name: Checkout entservices-usersettings-testframework
         if: ${{ inputs.caller_source == 'testframework' }}
         uses: actions/checkout@v3
         with:
           repository: rdkcentral/entservices-usersettings
           path: entservices-usersettings
-          ref: develop
+          ref: RDKEMW-13483-usersettings
 
       - name: Checkout googletest
         if: steps.cache.outputs.cache-hit != 'true'
@@ -372,6 +378,7 @@ jobs:
           -I $GITHUB_WORKSPACE/entservices-testframework/Tests/headers/rdk/iarmmgrs-hal
           -I $GITHUB_WORKSPACE/entservices-testframework/Tests/headers/ccec/drivers
           -I $GITHUB_WORKSPACE/entservices-testframework/Tests/headers/network
+          -I $GITHUB_WORKSPACE/entservices-usersettings/helpers
           -I $GITHUB_WORKSPACE/entservices-testframework/Tests/headers/libusb
           -I $GITHUB_WORKSPACE/entservices-testframework/Tests
           -I $GITHUB_WORKSPACE/entservices-testframework/Tests/headers/Dobby
@@ -405,6 +412,7 @@ jobs:
             -DHAS_API_SYSTEM
             -DHAS_API_POWERSTATE
             -DHAS_RBUS
+          "
           &&
           cmake --build build/mocks -j8
           &&

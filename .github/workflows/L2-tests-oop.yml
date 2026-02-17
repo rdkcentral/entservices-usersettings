@@ -122,7 +122,13 @@ jobs:
         with:
           repository: rdkcentral/entservices-usersettings
           path: entservices-usersettings
-          ref: develop
+          ref: RDKEMW-13483-usersettings
+
+      - name: Checkout entservices-persistentstore
+        if: ${{ inputs.caller_source == 'local' }}
+        uses: actions/checkout@v3
+        with:
+          path: entservices-persistentstore    
 
       - name: Apply  ThunderTools
         run: |

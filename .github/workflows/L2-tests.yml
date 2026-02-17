@@ -100,7 +100,13 @@ jobs:
         with:
           repository: rdkcentral/entservices-usersettings
           path: entservices-usersettings
-          ref: develop
+          ref: RDKEMW-13483-usersettings
+
+       - name: Checkout entservices-persistentstore
+        if: ${{ inputs.caller_source == 'local' }}
+        uses: actions/checkout@v3
+        with:
+          path: entservices-persistentstore   
 
       - name: Checkout entservices-testframework
         uses: actions/checkout@v3
@@ -322,6 +328,7 @@ jobs:
           -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
           -DCMAKE_CXX_FLAGS="
           -I $GITHUB_WORKSPACE/entservices-testframework/Tests/headers
+          -I $GITHUB_WORKSPACE/entservices-usersettings/helpers
           -I $GITHUB_WORKSPACE/install/usr/include"
           &&
           cmake --build build/mocks -j8
