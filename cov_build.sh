@@ -32,4 +32,3 @@ cmake -G Ninja -S "$GITHUB_WORKSPACE" -B build/usersettings \
 cmake --build build/usersettings --target install
 echo "======================================================================================"
 exit 0
-exit 0

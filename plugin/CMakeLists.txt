@@ -22,7 +22,7 @@ set(PLUGIN_IMPLEMENTATION ${MODULE_NAME}Implementation)
 set(PLUGIN_USERSETTINGS_AUTOSTART "true" CACHE STRING "Automatically start UserSettings plugin")
 set(PLUGIN_USERSETTINGS_STARTUPORDER "51" CACHE STRING "To configure startup order of UserSettings plugin")
 
-list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 
 find_package(${NAMESPACE}Plugins REQUIRED)
 find_package(${NAMESPACE}Definitions REQUIRED)
