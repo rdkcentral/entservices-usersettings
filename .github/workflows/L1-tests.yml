@@ -354,7 +354,7 @@ jobs:
           -DBUILD_SHARED_LIBS=ON
           -DRDK_SERVICES_L1_TEST=ON
           -DUSE_THUNDER_R4=ON
-          # -DCMAKE_TOOLCHAIN_FILE="${{ env.TOOLCHAIN_FILE }}"
+          -DCMAKE_TOOLCHAIN_FILE="${{ env.TOOLCHAIN_FILE }}"
           -DCMAKE_INSTALL_PREFIX="$GITHUB_WORKSPACE/install/usr"
           -DCMAKE_MODULE_PATH="$GITHUB_WORKSPACE/install/tools/cmake"
           -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
@@ -664,7 +664,7 @@ jobs:
           rm -rf $(pwd)/rdkL1TestResults.json
 
       - name: Run unit tests with valgrind
-        # if: ${{ !env.ACT }}
+        if: ${{ !env.ACT }}
         run: >
           PATH=$GITHUB_WORKSPACE/install/usr/bin:${PATH}
           LD_LIBRARY_PATH=$GITHUB_WORKSPACE/install/usr/lib:$GITHUB_WORKSPACE/install/usr/lib/wpeframework/plugins:${LD_LIBRARY_PATH}
@@ -706,7 +706,7 @@ jobs:
           filtered_coverage.info
 
       - name: Upload artifacts
-        # if: ${{ !env.ACT }}
+        if: ${{ !env.ACT }}
         uses: actions/upload-artifact@v4
         with:
           name: artifacts-L1-usersettings
