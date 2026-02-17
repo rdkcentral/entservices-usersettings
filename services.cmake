@@ -15,21 +15,25 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# Only keep telemetry and continuewatching plugin options as required for usersettings
+#
+# features
+#
+
+add_definitions(-DRDK_LOG_MILESTONE)
+
 option(PLUGIN_TELEMETRY "PLUGIN_TELEMETRY" ON)
 option(PLUGIN_CONTINUEWATCHING "PLUGIN_CONTINUEWATCHING" ON)
 
 if(PLUGIN_CONTINUEWATCHING)
-    add_definitions (-DPLUGIN_CONTINUEWATCHING)
     if(CONTINUEWATCHING_DISABLE_SECAPI)
         add_definitions (-DDISABLE_SECAPI)
     endif()
 endif()
 
-if(PLUGIN_TELEMETRY)
-    add_definitions (-DPLUGIN_TELEMETRY)
+if (BUILD_ENABLE_TELEMETRY_LOGGING)
+    message("Building with telemetry logging")
+    add_definitions (-DENABLE_TELEMETRY_LOGGING)
 endif()
 
-add_definitions(-DRDK_LOG_MILESTONE)
 add_definitions(-DUSE_DS)
 add_definitions(-DENABLE_DEEP_SLEEP)

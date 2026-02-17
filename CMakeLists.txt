@@ -19,7 +19,6 @@
 
 cmake_minimum_required(VERSION 3.3)
 
-
 find_package(WPEFramework)
 
 # All packages that did not deliver a CMake Find script (and some deprecated scripts that need to be removed)
@@ -34,10 +33,26 @@ if(COMCAST_CONFIG)
     include(services.cmake)
 endif()
 
+# Library installation section
+string(TOLOWER ${NAMESPACE} STORAGE_DIRECTORY)
 
+# for writing pc and config files
+include(CmakeHelperFunctions)
 
-# Only include usersettings plugin and its dependencies
-option(PLUGIN_USERSETTINGS "Include UserSettings plugin" ON)
+if(RDK_SERVICE_L2_TEST)
+    add_subdirectory(Tests/L2Tests)
+endif()
+
+option(DISABLE_SECURITY_TOKEN "Disable security token" OFF)
+
+if(RDK_SERVICES_L1_TEST)
+    add_subdirectory(Tests/L1Tests)
+endif()
+
+if(DISABLE_SECURITY_TOKEN)
+    add_definitions(-DDISABLE_SECURITY_TOKEN)
+endif()
+
 if(PLUGIN_USERSETTINGS)
     add_subdirectory(plugin)
 endif()
