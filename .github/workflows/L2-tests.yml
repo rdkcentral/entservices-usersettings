@@ -102,11 +102,11 @@ jobs:
           path: entservices-usersettings
           ref: develop
 
-      - name: Checkout entservices-deviceanddisplay
+      - name: Checkout entservices-persistentstore
         uses: actions/checkout@v3
         with:
-          repository: rdkcentral/entservices-deviceanddisplay
-          path: entservices-deviceanddisplay
+          repository: rdkcentral/entservices-persistentstore
+          path: entservices-persistentstore
           ref: develop
          
       - name: Checkout entservices-testframework
@@ -727,7 +727,7 @@ jobs:
         if: ${{ !env.ACT }}
         uses: actions/upload-artifact@v4
         with:
-          name: artifacts-L2-infra
+          name: artifacts-L2-usersettings
           path: |
             coverage/
             valgrind_log
