@@ -140,7 +140,7 @@ jobs:
           path: entservices-usersettings
           ref: develop
 
-     - name: Checkout entservices-persistentstore
+      - name: Checkout entservices-persistentstore
         uses: actions/checkout@v3
         with:
           repository: rdkcentral/entservices-persistentstore
