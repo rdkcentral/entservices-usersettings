@@ -23,6 +23,7 @@
 #include "UtilsJsonRpc.h"
 #include <mutex>
 #include "tracing/Logging.h"
+#include <stdio.h>
 
 namespace WPEFramework {
 namespace Plugin {
@@ -116,6 +117,7 @@ UserSettingsImplementation* UserSettingsImplementation::instance(UserSettingsImp
 {
    static UserSettingsImplementation *UserSettingsImpl_instance = nullptr;
 
+   printf("Test coverity workflow %s\n");
    if (UserSettingsImpl != nullptr)
    {
       UserSettingsImpl_instance = UserSettingsImpl;
