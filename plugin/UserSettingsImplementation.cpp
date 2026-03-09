@@ -24,6 +24,7 @@
 #include <mutex>
 #include "tracing/Logging.h"
 
+
 namespace WPEFramework {
 namespace Plugin {
 
