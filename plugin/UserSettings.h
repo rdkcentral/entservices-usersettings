@@ -222,8 +222,8 @@ namespace Plugin {
             Exchange::IUserSettings* _userSetting{};
             Exchange::IUserSettingsInspector* _userSettingsInspector{};
             Core::Sink<Notification> _usersettingsNotification;
-            Exchange::IBackupProvider* _backupProvider{};
             Exchange::IConfiguration* configure;
+            Exchange::IBackupProvider* _backupProvider{};
     };
 
 } // namespace Plugin
