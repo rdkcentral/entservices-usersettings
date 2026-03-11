@@ -132,6 +132,7 @@ UserSettingsImplementation::~UserSettingsImplementation()
     LOGINFO("UserSettingsImplementation Destructor");
     if(_remotStoreObject)
     {
+        _remotStoreObject->Unregister(&_storeNotification);
         _remotStoreObject->Release();
         _remotStoreObject = nullptr;
     }
