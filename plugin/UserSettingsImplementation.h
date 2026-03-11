@@ -68,7 +68,7 @@ namespace Plugin {
         static const double maxVGR;
 
     private:
-        static const std::map<Exchange::BackupContext::Scenario, string> _backupScenariogMap;
+        static const std::map<Exchange::Scenario, string> _backupScenarioMap;
         
         class Store2Notification : public Exchange::IStore2::INotification {
         private:
