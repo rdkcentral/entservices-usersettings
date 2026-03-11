@@ -111,11 +111,6 @@ namespace WPEFramework
             message = _T("UserSettings plugin could not be initialised");
         }
 
-        if (0 != message.length())
-        {
-           Deinitialize(service);
-        }
-
         return message;
     }
 
