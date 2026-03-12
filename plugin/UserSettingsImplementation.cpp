@@ -1146,11 +1146,17 @@ Core::hresult UserSettingsImplementation::Backup(const Exchange::BackupContext& 
 {
     LOGINFO("Backup scenario [%d] with persistentPath [%s] and variant [%s]", context.scenario, context.persistentPath.c_str(), context.variant.c_str());
 
-    // check context.variant for aphphanumeric and length less than 30 characters to avoid file system issues
+    // check context.variant for alphanumeric characters and length less than 30 characters to avoid file system issues
     std::regex alphaNumRegex("^[a-zA-Z0-9_]{0,30}$");
     if (!std::regex_match(context.variant, alphaNumRegex))
     {
         LOGERR("Variant [%s] is not valid. It should be alphanumeric and up to 30 characters long.", context.variant.c_str());
+        return Core::ERROR_INVALID_PARAMETER;
+    }
+
+    if (_backupScenarioMap.find(context.scenario) == _backupScenarioMap.end())
+    {
+        LOGERR("Unknown backup scenario [%d]", context.scenario);
         return Core::ERROR_INVALID_PARAMETER;
     }
 
@@ -1162,17 +1168,12 @@ Core::hresult UserSettingsImplementation::Backup(const Exchange::BackupContext& 
         return Core::ERROR_GENERAL;
     }
 
-    if (_backupScenarioMap.find(context.scenario) == _backupScenarioMap.end())
-    {
-        LOGERR("Unknown backup scenario [%d]", context.scenario);
-        return Core::ERROR_INVALID_PARAMETER;
-    }
-
     if (context.persistentPath.empty() || access(context.persistentPath.c_str(), W_OK) != 0)
     {
         LOGERR("Persistent path [%s] is not accessible for writing backup data", context.persistentPath.c_str());
         return Core::ERROR_INVALID_PARAMETER;
     }
+
     uint32_t status = Core::ERROR_NONE;
 
     JsonObject backupData;
@@ -1228,18 +1229,26 @@ Core::hresult UserSettingsImplementation::Restore(const Exchange::BackupContext&
 {
     LOGINFO("Restore scenario [%d] with persistentPath [%s] and variant [%s]", context.scenario, context.persistentPath.c_str(), context.variant.c_str());
 
-    Core::SafeSyncType<Core::CriticalSection> lock(_adminLock);
-
-    if (nullptr == _remotStoreObject)
+    // check context.variant for alphanumeric characters and length less than 30 characters to avoid file system issues
+    std::regex alphaNumRegex("^[a-zA-Z0-9_]{0,30}$");
+    if (!std::regex_match(context.variant, alphaNumRegex))
     {
-        LOGERR("No access to IStore2 object");
-        return Core::ERROR_GENERAL;
+        LOGERR("Variant [%s] is not valid. It should be alphanumeric and up to 30 characters long.", context.variant.c_str());
+        return Core::ERROR_INVALID_PARAMETER;
     }
 
     if (_backupScenarioMap.find(context.scenario) == _backupScenarioMap.end())
     {
         LOGERR("Unknown backup scenario [%d]", context.scenario);
         return Core::ERROR_INVALID_PARAMETER;
+    }
+
+    Core::SafeSyncType<Core::CriticalSection> lock(_adminLock);
+
+    if (nullptr == _remotStoreObject)
+    {
+        LOGERR("No access to IStore2 object");
+        return Core::ERROR_GENERAL;
     }
 
     std::string fileName = context.persistentPath + "/" + _backupScenarioMap.find(context.scenario)->second + "_" + context.variant + ".json";
@@ -1301,6 +1310,16 @@ Core::hresult UserSettingsImplementation::Restore(const Exchange::BackupContext&
 
 Core::hresult UserSettingsImplementation::Delete(const Exchange::BackupContext& context)
 {
+    LOGINFO("Delete backup for scenario [%d] with persistentPath [%s] and variant [%s]", context.scenario, context.persistentPath.c_str(), context.variant.c_str());
+    
+    // check context.variant for alphanumeric characters and length less than 30 characters to avoid file system issues
+    std::regex alphaNumRegex("^[a-zA-Z0-9_]{0,30}$");
+    if (!std::regex_match(context.variant, alphaNumRegex))
+    {
+        LOGERR("Variant [%s] is not valid. It should be alphanumeric and up to 30 characters long.", context.variant.c_str());
+        return Core::ERROR_INVALID_PARAMETER;
+    }
+
     if (_backupScenarioMap.find(context.scenario) == _backupScenarioMap.end())
     {
         LOGERR("Unknown backup scenario [%d]", context.scenario);
