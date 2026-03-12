@@ -1213,8 +1213,19 @@ Core::hresult UserSettingsImplementation::Backup(const Exchange::BackupContext& 
         std::string jsonString;
         backupData.ToString(jsonString);
         backupFile << jsonString;
+        backupFile.flush();
+
+        if (!backupFile.good())
+        {
+            LOGERR("Backup - Failed to write backup data to file [%s]", fileName.c_str());
+            status = Core::ERROR_GENERAL;
+        }
+        else
+        {
+            LOGINFO("Backup - Backup data is written to file successfully");
+        }
+
         backupFile.close();
-        LOGINFO("Backup - Backup data is written to file successfully");
     }
     else
     {
