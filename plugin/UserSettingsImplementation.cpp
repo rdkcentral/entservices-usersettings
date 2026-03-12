@@ -1142,13 +1142,19 @@ Core::hresult UserSettingsImplementation::GetMigrationStates(IUserSettingsMigrat
     return status;
 }
 
+bool UserSettingsImplementation::IsValidVariant(const string& value) const
+{
+    // check value for alphanumeric characters and length less than 30 characters to avoid file system issues
+    std::regex alphaNumRegex("^[a-zA-Z0-9_]{0,30}$");
+    return std::regex_match(value, alphaNumRegex);
+}
+
 Core::hresult UserSettingsImplementation::Backup(const Exchange::BackupContext& context)
 {
     LOGINFO("Backup scenario [%d] with persistentPath [%s] and variant [%s]", context.scenario, context.persistentPath.c_str(), context.variant.c_str());
 
     // check context.variant for alphanumeric characters and length less than 30 characters to avoid file system issues
-    std::regex alphaNumRegex("^[a-zA-Z0-9_]{0,30}$");
-    if (!std::regex_match(context.variant, alphaNumRegex))
+    if (!IsValidVariant(context.variant))
     {
         LOGERR("Variant [%s] is not valid. It should be alphanumeric and up to 30 characters long.", context.variant.c_str());
         return Core::ERROR_INVALID_PARAMETER;
@@ -1241,8 +1247,7 @@ Core::hresult UserSettingsImplementation::Restore(const Exchange::BackupContext&
     LOGINFO("Restore scenario [%d] with persistentPath [%s] and variant [%s]", context.scenario, context.persistentPath.c_str(), context.variant.c_str());
 
     // check context.variant for alphanumeric characters and length less than 30 characters to avoid file system issues
-    std::regex alphaNumRegex("^[a-zA-Z0-9_]{0,30}$");
-    if (!std::regex_match(context.variant, alphaNumRegex))
+    if (!IsValidVariant(context.variant))
     {
         LOGERR("Variant [%s] is not valid. It should be alphanumeric and up to 30 characters long.", context.variant.c_str());
         return Core::ERROR_INVALID_PARAMETER;
@@ -1324,8 +1329,7 @@ Core::hresult UserSettingsImplementation::Delete(const Exchange::BackupContext& 
     LOGINFO("Delete backup for scenario [%d] with persistentPath [%s] and variant [%s]", context.scenario, context.persistentPath.c_str(), context.variant.c_str());
     
     // check context.variant for alphanumeric characters and length less than 30 characters to avoid file system issues
-    std::regex alphaNumRegex("^[a-zA-Z0-9_]{0,30}$");
-    if (!std::regex_match(context.variant, alphaNumRegex))
+    if (!IsValidVariant(context.variant))
     {
         LOGERR("Variant [%s] is not valid. It should be alphanumeric and up to 30 characters long.", context.variant.c_str());
         return Core::ERROR_INVALID_PARAMETER;
