@@ -1182,18 +1182,25 @@ Core::hresult UserSettingsImplementation::Backup(const Exchange::BackupContext& 
         string value = "";
 
         uint32_t ttl = 0;
-        uint32_t status = _remotStoreObject->GetValue(Exchange::IStore2::ScopeType::DEVICE, USERSETTINGS_NAMESPACE, uimap->second, value, ttl);
-        LOGINFO("Backup - Key [%s] status [%d]", (uimap->second).c_str(), status);
-        if (Core::ERROR_NONE == status)
+        uint32_t getStatus = _remotStoreObject->GetValue(Exchange::IStore2::ScopeType::DEVICE, USERSETTINGS_NAMESPACE, uimap->second, value, ttl);
+        LOGINFO("Backup - Key [%s] status [%d]", (uimap->second).c_str(), getStatus);
+        if (Core::ERROR_NONE == getStatus)
         {
             backupData[uimap->second.c_str()] = value;
         }
-        else if (Core::ERROR_UNKNOWN_KEY != status)
+        else if (Core::ERROR_UNKNOWN_KEY != getStatus && Core::ERROR_NOT_EXIST != getStatus)
         {
-            LOGERR("Backup - Failed to get value for Key [%s] with status [%d] ", (uimap->second).c_str(), status);
+            LOGERR("Backup - Failed to get value for Key [%s] with status [%d] ", (uimap->second).c_str(), getStatus);
+            status = Core::ERROR_GENERAL;
             break;
 
         }    
+    }
+
+    if (Core::ERROR_NONE != status)
+    {
+        LOGERR("Backup - Failed to get user settings values, backup data is not complete");
+        return status;
     }
 
     std::string fileName = context.persistentPath + "/" + _backupScenarioMap.find(context.scenario)->second + "_" + context.variant + ".json";
