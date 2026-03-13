@@ -1305,7 +1305,14 @@ Core::hresult UserSettingsImplementation::Restore(const Exchange::BackupContext&
                 }
                 else
                 {
-                    LOGWARN("Restore - Backup data does not contain value for Key [%s]", (uimap->second).c_str());
+                    LOGWARN("Restore - Backup data does not contain value for Key, removing that key from persistent store [%s]", (uimap->second).c_str());
+                    uint32_t deleteStatus = _remotStoreObject->DeleteKey(Exchange::IStore2::ScopeType::DEVICE, USERSETTINGS_NAMESPACE, uimap->second);
+                    if (Core::ERROR_NONE != deleteStatus)
+                    {
+                        LOGERR("Restore - Failed to delete key [%s] with status [%d]", (uimap->second).c_str(), deleteStatus);
+                        status = deleteStatus;
+                        break;
+                    }
                 }
             }
         }
