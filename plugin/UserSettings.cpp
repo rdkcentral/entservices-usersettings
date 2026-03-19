@@ -48,7 +48,7 @@ namespace WPEFramework
      **/
     SERVICE_REGISTRATION(UserSettings, API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, API_VERSION_NUMBER_PATCH);
 
-    UserSettings::UserSettings() : _service(nullptr), _connectionId(0), _userSetting(nullptr), _userSettingsInspector(nullptr), _usersettingsNotification(this), configure(nullptr)
+    UserSettings::UserSettings() : _service(nullptr), _connectionId(0), _userSetting(nullptr), _userSettingsInspector(nullptr), _usersettingsNotification(this), configure(nullptr), _backupProvider(nullptr)
     {
         SYSLOG(Logging::Startup, (_T("UserSettings Constructor")));
     }
@@ -90,6 +90,13 @@ namespace WPEFramework
                 message = _T("UserSettings implementation did not provide a configuration interface");
             }
 
+            _backupProvider = _userSetting->QueryInterface<Exchange::IBackupProvider>();
+            if (_backupProvider == nullptr)
+            {
+                LOGERR("UserSettings implementation did not provide a IBackupProvider interface");
+                message = _T("UserSettings implementation did not provide a IBackupProvider interface");
+            }
+
             // Register for notifications
             _userSetting->Register(&_usersettingsNotification);
             // Invoking Plugin API register to wpeframework
@@ -109,11 +116,6 @@ namespace WPEFramework
         {
             SYSLOG(Logging::Startup, (_T("UserSettings::Initialize: Failed to initialise UserSettings plugin")));
             message = _T("UserSettings plugin could not be initialised");
-        }
-
-        if (0 != message.length())
-        {
-           Deinitialize(service);
         }
 
         return message;
@@ -142,6 +144,11 @@ namespace WPEFramework
             if (_userSettingsInspector != nullptr) {
                 _userSettingsInspector->Release();
                 _userSettingsInspector = nullptr;
+            }
+
+            if (_backupProvider != nullptr) {
+                _backupProvider->Release();
+                _backupProvider = nullptr;
             }
 
             // Stop processing:
