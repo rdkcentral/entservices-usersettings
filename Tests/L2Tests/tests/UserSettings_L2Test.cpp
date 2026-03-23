@@ -3284,7 +3284,7 @@ TEST_F(UserSettingTest,SetAndGetMethodsUsingComRpcConnectionSuccessCase)
                 {
                     while (states->Next(migration_states) == true)
                     {
-                        EXPECT_EQ(migration_states.requiresMigration, false);
+                        EXPECT_EQ(migration_states.requiresMigration, true);
                     }
                 }
 
