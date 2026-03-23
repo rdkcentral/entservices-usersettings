@@ -3284,7 +3284,14 @@ TEST_F(UserSettingTest,SetAndGetMethodsUsingComRpcConnectionSuccessCase)
                 {
                     while (states->Next(migration_states) == true)
                     {
-                        EXPECT_EQ(migration_states.requiresMigration, true);
+                        if (migration_states.key == Exchange::IUserSettingsInspector::SettingsKey::PRIVACY_MODE)
+                        {
+                            EXPECT_EQ(migration_states.requiresMigration, true);
+                        }
+                        else
+                        {
+                            EXPECT_EQ(migration_states.requiresMigration, false);
+                        }
                     }
                 }
 
