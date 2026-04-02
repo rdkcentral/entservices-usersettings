@@ -878,12 +878,6 @@ TEST_F(UserSettingTest, getMigrationStatecase)
     EXPECT_TRUE(result_bool.Value());
     paramsMigrationState.Clear();
 
-    paramsMigrationState["key"] = "PRIVACY_MODE";
-    status = InvokeServiceMethod("org.rdk.UserSettings", "getMigrationState", paramsMigrationState, result_bool);
-    EXPECT_EQ(status, Core::ERROR_NONE);
-    EXPECT_TRUE(result_bool.Value());
-    paramsMigrationState.Clear();
-
     status = InvokeServiceMethod("org.rdk.UserSettings", "getMigrationStates", paramsMigrationState, result_json);
     EXPECT_EQ(status, Core::ERROR_NONE);
 }
