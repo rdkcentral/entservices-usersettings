@@ -327,17 +327,6 @@ class NotificationHandler : public Exchange::IUserSettings::INotification {
 
         }
 
-        void OnPrivacyModeChanged(const string& privacyMode) override
-        {
-            TEST_LOG("OnPrivacyModeChanged event triggered ***\n");
-            std::unique_lock<std::mutex> lock(m_mutex);
-
-            TEST_LOG("OnPrivacyModeChanged received: %s\n", privacyMode.c_str());
-            /* Notify the requester thread. */
-            m_event_signalled |= UserSettings_onPrivacyModeChanged;
-            m_condition_variable.notify_one();
-        }
-
         uint32_t WaitForRequestStatus(uint32_t timeout_ms, UserSettingsL2test_async_events_t expected_status)
         {
             std::unique_lock<std::mutex> lock(m_mutex);
@@ -384,7 +373,6 @@ protected:
       void onVoiceGuidanceRateChanged(const double rate);
       void onVoiceGuidanceHintsChanged(const bool hints);
       void onContentPinChanged(const string& contentPin);
-      void onPrivacyModeChanged(const string& privacyMode);
 
       uint32_t WaitForRequestStatus(uint32_t timeout_ms,UserSettingsL2test_async_events_t expected_status);
       uint32_t CreateUserSettingInterfaceObjectUsingComRPCConnection();
@@ -717,18 +705,6 @@ void UserSettingTest::onContentPinChanged(const string& contentPin)
     TEST_LOG("onContentPinChanged received: %s\n", contentPin.c_str());
     /* Notify the requester thread. */
     m_event_signalled |= UserSettings_onContentPinChanged;
-    m_condition_variable.notify_one();
-
-}
-
-void UserSettingTest::onPrivacyModeChanged(const string& privacyMode)
-{
-    TEST_LOG("onPrivacyModeChanged event triggered ***\n");
-    std::unique_lock<std::mutex> lock(m_mutex);
-
-    TEST_LOG("onPrivacyModeChanged received: %s\n", privacyMode.c_str());
-    /* Notify the requester thread. */
-    m_event_signalled |= UserSettings_onPrivacyModeChanged;
     m_condition_variable.notify_one();
 
 }
@@ -2146,75 +2122,6 @@ TEST_F(UserSettingTest, onContentPinChangedEvent)
 
     status = InvokeServiceMethod("org.rdk.UserSettings", "getMigrationStates", paramsMigrationState, result_json);
     EXPECT_EQ(status, Core::ERROR_NONE);
-
-    time(&testcase_exit);
-    TEST_LOG("current time stramp at end %ld\n", testcase_exit);
-
-}
-
-TEST_F(UserSettingTest, onPrivacyModeChangedEvent)
-{
-
-    time_t testcase_entry, testcase_exit, wait_entry, wait_exit;
-    time(&testcase_entry);
-    TEST_LOG("current time stramp at beginning %ld\n", testcase_entry);
-
-    JSONRPC::LinkType<Core::JSON::IElement> jsonrpc(USERSETTING_CALLSIGN, USERSETTINGL2TEST_CALLSIGN);
-    StrictMock<AsyncHandlerMock_UserSetting> async_handler;
-    uint32_t status = Core::ERROR_GENERAL;
-    uint32_t signalled = UserSettings_StateInvalid;
-
-    string privacyMode = "SHARE";
-
-    Core::JSON::String result_string;
-    Core::JSON::Boolean result_bool;
-    JsonObject result_json;
-    JsonObject paramsMigrationState;
-
-    WaitGroup wg;
-    wg.Add(1);
-
-    TEST_LOG("Testing SetPrivacyMode and GetPrivacyMode methods");
-    status = jsonrpc.Subscribe<JsonObject>(JSON_TIMEOUT,
-                                           _T("onPrivacyModeChanged"),
-                                           [&async_handler,&wg](const JsonObject& parameters) {
-                                           string privacyMode = parameters["privacyMode"].String();
-                                           TEST_LOG("onPrivacyModeChanged callback triggered with value: %s", privacyMode.c_str());
-                                           async_handler.onPrivacyModeChanged(privacyMode);
-                                           wg.Done();
-                                       });
-    EXPECT_EQ(Core::ERROR_NONE, status);
-
-    EXPECT_CALL(async_handler, onPrivacyModeChanged(MatchRequestStatusString(privacyMode)))
-    .WillOnce(Invoke(this, &UserSettingTest::onPrivacyModeChanged));
-
-    JsonObject paramsPrivacyMode;
-    paramsPrivacyMode["privacyMode"] = privacyMode;
-    status = InvokeServiceMethod("org.rdk.UserSettings", "setPrivacyMode", paramsPrivacyMode, result_json);
-    EXPECT_EQ(status,Core::ERROR_NONE);
-
-    time(&wait_entry);
-    TEST_LOG("current time stramp before wait %ld\n", wait_entry);
-
-    wg.Wait();
-
-    signalled = WaitForRequestStatus(JSON_TIMEOUT,UserSettings_onPrivacyModeChanged);
-    EXPECT_TRUE(signalled & UserSettings_onPrivacyModeChanged);
-
-    time(&wait_exit);
-    TEST_LOG("current time stramp after wait %ld\n", wait_exit);
-
-    jsonrpc.Unsubscribe(JSON_TIMEOUT, _T("onPrivacyModeChanged"));
-
-    status = InvokeServiceMethod("org.rdk.UserSettings", "getPrivacyMode", result_string);
-    EXPECT_EQ(status,Core::ERROR_NONE);
-    EXPECT_EQ(result_string.Value(), privacyMode);
-
-    paramsMigrationState["key"] = "PRIVACY_MODE";
-    status = InvokeServiceMethod("org.rdk.UserSettings", "getMigrationState", paramsMigrationState, result_bool);
-    EXPECT_EQ(status, Core::ERROR_NONE);
-    EXPECT_FALSE(result_bool.Value());
-    paramsMigrationState.Clear();
 
     time(&testcase_exit);
     TEST_LOG("current time stramp at end %ld\n", testcase_exit);
