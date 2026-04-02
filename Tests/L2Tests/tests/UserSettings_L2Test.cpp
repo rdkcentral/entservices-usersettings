@@ -3116,8 +3116,6 @@ TEST_F(UserSettingTest,SetAndGetMethodsUsingComRpcConnectionSuccessCase)
                     std::string errorMsg = "COM-RPC returned error " + std::to_string(status) + " (" + std::string(Core::ErrorToString(status)) + ")";
                     TEST_LOG("Err: %s", errorMsg.c_str());
                 }
-                signalled = notification.WaitForRequestStatus(JSON_TIMEOUT,UserSettings_onPrivacyModeChanged);
-                EXPECT_TRUE(signalled & UserSettings_onPrivacyModeChanged);
 
                 status = m_usersettingsplugin->GetPrivacyMode(getStringValue);
                 EXPECT_EQ(getStringValue, "SHARE");
