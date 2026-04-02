@@ -62,7 +62,6 @@ typedef enum : uint32_t {
     UserSettings_onVoiceGuidanceRateChanged = 0x00000010,
     UserSettings_onVoiceGuidanceHintsChanged = 0x00000011,
     UserSettings_onContentPinChanged = 0x00000012,
-    UserSettings_onPrivacyModeChanged = 0x00000013,
     UserSettings_StateInvalid = 0x00000000
 }UserSettingsL2test_async_events_t;
 
@@ -90,7 +89,6 @@ class AsyncHandlerMock_UserSetting
         MOCK_METHOD(void, onVoiceGuidanceRateChanged, (const double rate));
         MOCK_METHOD(void, onVoiceGuidanceHintsChanged, (const bool hints));
         MOCK_METHOD(void, onContentPinChanged, (const string& contentPin));
-        MOCK_METHOD(void, onPrivacyModeChanged, (const string &privacyMode));
 };
 
 class NotificationHandler : public Exchange::IUserSettings::INotification {
