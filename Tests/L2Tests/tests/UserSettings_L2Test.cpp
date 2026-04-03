@@ -3116,12 +3116,15 @@ TEST_F(UserSettingTest,SetAndGetMethodsUsingComRpcConnectionSuccessCase)
                 }
 
                 status = m_usersettingsplugin->GetPrivacyMode(getStringValue);
-                EXPECT_EQ(getStringValue, "SHARE");
                 EXPECT_EQ(status,Core::ERROR_NONE);
                 if (status != Core::ERROR_NONE)
                 {
                     std::string errorMsg = "COM-RPC returned error " + std::to_string(status) + " (" + std::string(Core::ErrorToString(status)) + ")";
                     TEST_LOG("Err: %s", errorMsg.c_str());
+                }
+                else
+                {
+                    EXPECT_EQ(getStringValue, "SHARE");
                 }
 
 
