@@ -178,7 +178,8 @@ jobs:
           issue_url="$(gh issue create \
             --repo "$REPO" \
             --title "$title" \
-            --body-file "$body_file")"
+            --body-file "$body_file" \
+            --assignee copilot)"
 
           echo "Created issue: $issue_url"
 
