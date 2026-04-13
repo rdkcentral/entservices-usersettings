@@ -165,7 +165,7 @@ jobs:
             printf '1. Analyze changed source files and existing L1 tests.\n'
             printf '2. If L1 tests are already sufficient, comment findings and stop.\n'
             printf '3. If L1 tests are missing, generate/update tests and open a separate PR.\n'
-            printf '4. Run CI for that PR and iteratively fix failures until required checks pass.\n'
+            printf '4. Report initial CI status and document any issues found.\n'
             printf '5. Keep production-code changes minimal and justified.\n\n'
             printf 'Prompt-mix guidance to apply:\n'
             printf '%s\n' "- basic API tests"
