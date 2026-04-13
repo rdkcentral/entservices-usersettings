@@ -178,10 +178,23 @@ jobs:
           issue_url="$(gh issue create \
             --repo "$REPO" \
             --title "$title" \
-            --body-file "$body_file" \
-            --assignee copilot)"
+            --body-file "$body_file")"
 
           echo "Created issue: $issue_url"
+          echo "issue_url=$issue_url" >> "$GITHUB_OUTPUT"
+
+      - name: Assign issue to Copilot agent
+        if: steps.evaluate.outputs.needs_agent == 'true' && steps.dedupe.outputs.duplicate != 'true'
+        env:
+          GH_TOKEN: ${{ secrets.COPILOT_PAT }}
+          REPO: ${{ github.repository }}
+          ISSUE_URL: ${{ steps.open-copilot-issue-to-run-custom-agent.outputs.issue_url }}
+        run: |
+          issue_number="${ISSUE_URL##*/}"
+          gh issue edit "$issue_number" \
+            --repo "$REPO" \
+            --add-assignee copilot
+          echo "Assigned issue #$issue_number to Copilot"
 
       - name: Skip because issue already exists
         if: steps.evaluate.outputs.needs_agent == 'true' && steps.dedupe.outputs.duplicate == 'true'
