@@ -146,8 +146,7 @@ jobs:
           if [[ "$EVENT_NAME" == "pull_request" ]]; then
             title="[L1-Guardian] Generate missing L1 tests for PR #$PR_NUMBER"
             subject="PR #$PR_NUMBER"
-            subject_details="PR title: $PR_TITLE
-Head SHA: $PR_HEAD_SHA"
+            subject_details=$'PR title: '"$PR_TITLE"$'\nHead SHA: '"$PR_HEAD_SHA"
           else
             title="[L1-Guardian] Daily scan detected source changes without L1 test updates"
             subject="daily scan"
