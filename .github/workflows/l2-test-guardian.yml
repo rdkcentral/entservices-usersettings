@@ -198,8 +198,6 @@ jobs:
             exit 1
           fi
           
-          
-          
           # Auto-assign to copilot using REST API with custom agent
           issue_number="${ISSUE_URL##*/}"
           gh api \
@@ -214,7 +212,7 @@ jobs:
               }
             }"
 
-          echo "Assigned issue #$issue_number to copilot with custom agent l2-test-guardian"
+          echo "Assigned issue #$issue_number to Copilot with custom agent l2-test-guardian"
 
       - name: Skip because issue already exists
         if: steps.evaluate.outputs.needs_agent == 'true' && steps.dedupe.outputs.duplicate == 'true'
