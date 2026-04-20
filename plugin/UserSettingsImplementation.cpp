@@ -17,6 +17,7 @@
 * limitations under the License.
 */
 
+
 #include "UserSettingsImplementation.h"
 #include <sys/prctl.h>
 #include <regex>
