@@ -17,6 +17,7 @@
 * limitations under the License.
 */
 
+
 #include "UserSettingsImplementation.h"
 #include <sys/prctl.h>
 #include <regex>
@@ -24,6 +25,7 @@
 #include <mutex>
 #include <fstream>
 #include "tracing/Logging.h"
+
 
 namespace WPEFramework {
 namespace Plugin {
