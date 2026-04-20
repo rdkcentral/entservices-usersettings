@@ -511,7 +511,7 @@ uint32_t UserSettingsImplementation::GetUserSettingsValue(const string& key, str
             }
             else
             {
-                LOGERR("Default value is not found in usersettingsDefaultMap for '%s' Key", key.c_str());
+                LOGERR("Default value is not found in usersettingsDefaultMap for '%s' Key");
             }
         }
     }
