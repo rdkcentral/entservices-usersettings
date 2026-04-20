@@ -187,16 +187,22 @@ jobs:
       - name: Assign issue to Copilot agent
         if: steps.evaluate.outputs.needs_agent == 'true' && steps.dedupe.outputs.duplicate != 'true'
         env:
-          GH_TOKEN: ${{ secrets.COPILOT_PAT != '' && secrets.COPILOT_PAT || github.token }}
+          GH_TOKEN: ${{ secrets.COPILOT_PAT }}
           REPO: ${{ github.repository }}
           ISSUE_URL: ${{ steps.open_issue.outputs.issue_url }}
         run: |
           set -euo pipefail
+
+          if [[ -z "${GH_TOKEN:-}" ]]; then
+            echo "COPILOT_PAT is empty. Add repo secret COPILOT_PAT with a PAT from a user who can assign Copilot agents."
+            exit 1
+          fi
           
-          # Confirm whether Copilot is assignable in this repository.
-          if ! gh api "/repos/$REPO/assignees" --jq '.[].login' | grep -Eiq '^(copilot|copilot-swe-agent\[bot\])$'; then
+          # Confirm whether Copilot is assignable in this repository and pick the best login.
+          assignee_login="$(gh api "/repos/$REPO/assignees" --jq '.[].login' | grep -Ei '^(copilot-swe-agent\[bot\]|copilot)$' | head -n1 || true)"
+          if [[ -z "$assignee_login" ]]; then
             echo "Copilot is not assignable in $REPO for this token/context."
-            echo "This is common in forks or repos without Copilot assignment enabled."
+            echo "Ensure COPILOT_PAT belongs to a user who can assign Copilot in this repo."
             exit 1
           fi
           
@@ -208,13 +214,13 @@ jobs:
             -H "X-GitHub-Api-Version: 2022-11-28" \
             "/repos/$REPO/issues/$issue_number/assignees" \
             --input - <<< "{
-              \"assignees\": [\"copilot\"],
+              \"assignees\": [\"$assignee_login\"],
               \"agent_assignment\": {
                 \"custom_agent\": \"l2-test-guardian\"
               }
             }"
 
-          echo "Assigned issue #$issue_number to Copilot with custom agent l2-test-guardian"
+          echo "Assigned issue #$issue_number to $assignee_login with custom agent l2-test-guardian"
 
       - name: Skip because issue already exists
         if: steps.evaluate.outputs.needs_agent == 'true' && steps.dedupe.outputs.duplicate == 'true'
