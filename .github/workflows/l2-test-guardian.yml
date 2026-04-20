@@ -187,16 +187,10 @@ jobs:
       - name: Assign issue to Copilot agent
         if: steps.evaluate.outputs.needs_agent == 'true' && steps.dedupe.outputs.duplicate != 'true'
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.COPILOT_PAT != '' && secrets.COPILOT_PAT || github.token }}
           REPO: ${{ github.repository }}
           ISSUE_URL: ${{ steps.open_issue.outputs.issue_url }}
         run: |
-          issue_number="${ISSUE_URL##*/}"
-          gh issue edit "$issue_number" \
-            --repo "$REPO" \
-            --add-assignee copilot
-          echo "Assigned issue #$issue_number to Copilot"
-
           # Auto-assign to copilot using REST API with custom agent
           issue_number="${ISSUE_URL##*/}"
           gh api \
