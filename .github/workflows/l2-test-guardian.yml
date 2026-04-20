@@ -198,13 +198,7 @@ jobs:
             exit 1
           fi
           
-          # Confirm whether Copilot is assignable in this repository and pick the best login.
-          assignee_login="$(gh api "/repos/$REPO/assignees" --jq '.[].login' | grep -Ei '^(copilot-swe-agent\[bot\]|copilot)$' | head -n1 || true)"
-          if [[ -z "$assignee_login" ]]; then
-            echo "Copilot is not assignable in $REPO for this token/context."
-            echo "Ensure COPILOT_PAT belongs to a user who can assign Copilot in this repo."
-            exit 1
-          fi
+          
           
           # Auto-assign to copilot using REST API with custom agent
           issue_number="${ISSUE_URL##*/}"
@@ -214,13 +208,13 @@ jobs:
             -H "X-GitHub-Api-Version: 2022-11-28" \
             "/repos/$REPO/issues/$issue_number/assignees" \
             --input - <<< "{
-              \"assignees\": [\"$assignee_login\"],
+              \"assignees\": [\"copilot-swe-agent[bot]\"],
               \"agent_assignment\": {
                 \"custom_agent\": \"l2-test-guardian\"
               }
             }"
 
-          echo "Assigned issue #$issue_number to $assignee_login with custom agent l2-test-guardian"
+          echo "Assigned issue #$issue_number to copilot with custom agent l2-test-guardian"
 
       - name: Skip because issue already exists
         if: steps.evaluate.outputs.needs_agent == 'true' && steps.dedupe.outputs.duplicate == 'true'
