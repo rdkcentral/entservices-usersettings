@@ -17,6 +17,12 @@ jobs:
   evaluate-and-enqueue:
     name: Detect missing L2 tests and enqueue Copilot
     runs-on: ubuntu-latest
+    if: |
+      github.event_name != 'pull_request' ||
+      (github.actor != 'dependabot[bot]' &&
+       github.actor != 'copilot[bot]' &&
+       !contains(github.event.pull_request.user.login, 'copilot') &&
+       !startsWith(github.event.pull_request.title, 'L2: '))
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
