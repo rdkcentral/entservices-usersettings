@@ -131,6 +131,20 @@ If ambiguous, ask for:
 - **Do not remove existing tests** unless they conflict with new generated tests (rare).
 - **Minimize PRs.** Combine related test coverage into one test PR, not multiple.
 
+## Tool Availability Guardrails
+
+Before declaring that work is blocked due to missing tools, do this preflight check and continue with fallbacks:
+1. Assume listed tools are available unless an actual tool call fails.
+2. Validate capabilities by attempting at least one concrete action in each required category:
+   - Repository inspection: use `get_changed_files` or `run_in_terminal` with `git diff --name-only`.
+   - File/view search: use `file_search`, `grep_search`, and `read_file`.
+   - Execution: use `run_in_terminal` for build/test commands.
+3. If one tool fails, retry the task with another allowed tool (for example, use `run_in_terminal` git commands if `get_changed_files` is unavailable).
+4. Only report a hard block after at least two concrete attempts with error evidence.
+5. In the block report, include exact failed command/tool, error output, and the next-best manual fallback.
+
+Never claim "missing tools" based only on assumption. Verify first, then proceed.
+
 ## Error Handling
 
 1. **Compilation failures:**
