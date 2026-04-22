@@ -217,11 +217,18 @@ jobs:
             printf 'Apply the appropriate template(s) based on the coverage gaps you detect.\n'
             printf 'Use the plugin name, method names, and source files from THIS repository as the inputs.\n\n'
             printf '### Template: Basic L2 Tests (COM-RPC and JSON-RPC)\n\n'
-            printf '%s\n\n' -- "${PROMPT_L2_BASIC}"
-            printf '### Template: Notification Handler Tests\n\n'
-            printf '%s\n\n' -- "${PROMPT_L2_NOTIFICATION}"
-            printf '### Template: Test Fixture Setup\n\n'
-            printf '%s\n\n' -- "${PROMPT_L2_FIXTURE}"
+            cat <<- TEMPLATEEOF
+            ${PROMPT_L2_BASIC}
+            TEMPLATEEOF
+            printf '\n### Template: Notification Handler Tests\n\n'
+            cat <<- TEMPLATEEOF
+            ${PROMPT_L2_NOTIFICATION}
+            TEMPLATEEOF
+            printf '\n### Template: Test Fixture Setup\n\n'
+            cat <<- TEMPLATEEOF
+            ${PROMPT_L2_FIXTURE}
+            TEMPLATEEOF
+            printf '\n'
           } > "$body_file"
 
           issue_url="$(gh issue create \
