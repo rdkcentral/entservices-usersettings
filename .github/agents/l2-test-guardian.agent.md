@@ -38,26 +38,28 @@ Enforce L2 test coverage for C++ plugin changes. When a PR modifies plugin sourc
 
 ### Phase 2: Generate Missing Tests
 
-1. For each coverage gap identified:
+The issue body that triggered this agent contains **pre-resolved prompt templates** extracted
+directly from the RDK-E prompt library. Do NOT attempt to invoke AI Workbench or fetch the
+prompt library yourself — the templates are already embedded under the headings below.
 
-   **For basic method coverage:**
-   - Invoke: "Generate Basic Tests for Method via JSONRPC and COMRPC" prompt
-   - Inputs: plugin name, method name, API header, implementation file(s)
-   - Output: GTest code for method parameter validation, return value checks, error handling
+1. Locate the relevant template(s) in the issue body:
+   - **"Template: Basic L2 Tests (COM-RPC and JSON-RPC)"** — use for new/modified public methods
+   - **"Template: Notification Handler Tests"** — use for new/modified event or notification logic
+   - **"Template: Test Fixture Setup"** — use when the test fixture itself needs to be created or extended
 
-   **For notification handler coverage:**
-   - Invoke: "Generate Notification Handler and Tests" prompt
-   - Inputs: plugin name, notification name, API header, implementation file(s)
-   - Output: GTest code for notification subscription, triggering, and validation
+2. For each coverage gap, apply the matching template:
+   - Substitute the plugin name, method name(s), and file paths from THIS repository into
+     every `{{inputs.pluginName}}`, `{{inputs.methodName}}`, etc. placeholder in the template.
+   - Read the relevant source files from the repo (API header, implementation files, existing
+     test file) using your `read_file` and `file_search` tools — these are the equivalent of
+     the `apiHeaderCtx`, `implFilesCtx`, and `existingL1TestCtx` context blocks the template
+     expects.
+   - Follow the structural contracts in the template exactly: fixture class name, test naming
+     convention, COM-RPC and JSON-RPC test patterns, assertion style.
 
-   **For fixture/setup coverage:**
-   - Invoke: "Generate a Test Fixture" prompt
-   - Inputs: plugin name, API header, implementation files
-   - Output: Complete fixture class with IPC setup, mock initialization, service activation
-
-2. Combine generated tests into a cohesive test file extension.
-3. Ensure tests compile against current source.
-4. Document assumptions about plugin behavior made during test generation.
+3. Combine generated tests into a cohesive test file extension.
+4. Ensure tests compile against current source.
+5. Document assumptions about plugin behavior made during test generation.
 
 ### Phase 3: Production Code Seaming (Minimal)
 
@@ -122,20 +124,6 @@ If ambiguous, ask for:
 - **Run tests locally first.** Verify new tests pass before opening PR.
 - **Do not remove existing tests** unless they conflict with new generated tests (rare).
 - **Minimize PRs.** Combine related test coverage into one test PR, not multiple.
-
-## Tool Availability Guardrails
-
-Before declaring that work is blocked due to missing tools, do this preflight check and continue with fallbacks:
-1. Assume listed tools are available unless an actual tool call fails.
-2. Validate capabilities by attempting at least one concrete action in each required category:
-   - Repository inspection: use `get_changed_files` or `run_in_terminal` with `git diff --name-only`.
-   - File/view search: use `file_search`, `grep_search`, and `read_file`.
-   - Execution: use `run_in_terminal` for build/test commands.
-3. If one tool fails, retry the task with another allowed tool (for example, use `run_in_terminal` git commands if `get_changed_files` is unavailable).
-4. Only report a hard block after at least two concrete attempts with error evidence.
-5. In the block report, include exact failed command/tool, error output, and the next-best manual fallback.
-
-Never claim "missing tools" based only on assumption. Verify first, then proceed.
 
 ## Error Handling
 
