@@ -29,6 +29,36 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Clone RDK-E prompt library
+        run: |
+          git clone --depth=1 https://github.com/rdk-e/rdke_mw_prompt_lib.git /tmp/rdke_mw_prompt_lib
+
+      - name: Resolve prompts from RDK-E library
+        id: resolve_prompts
+        run: |
+          python3 - <<'PYEOF'
+          import yaml, os, sys
+
+          lib = "/tmp/rdke_mw_prompt_lib/RDK/entservices/L2-plugin-testing/prompts"
+          l1_lib = "/tmp/rdke_mw_prompt_lib/RDK/entservices/L1-plugin-testing/prompts"
+          prompts = {
+            "l2_basic":        f"{lib}/generate-l2-basic-tests-jsonrpc-comrpc.yml",
+            "l2_notification": f"{lib}/generate-l2-notification-handler-tests.yml",
+            "l2_fixture":      f"{lib}/generate-l2-a-test-fixture.yml",
+          }
+
+          out_path = os.environ["GITHUB_OUTPUT"]
+          with open(out_path, "a") as out:
+            for key, path in prompts.items():
+              try:
+                with open(path) as f:
+                  data = yaml.safe_load(f)
+                text = data["promptDefinition"]["prompt"].strip()
+              except Exception as e:
+                text = f"(could not resolve prompt: {e})"
+              out.write(f"prompt_{key}<<__PROMPTEOF__\n{text}\n__PROMPTEOF__\n")
+          PYEOF
+          
       - name: Evaluate change set
         id: evaluate
         env:
@@ -161,6 +191,9 @@ jobs:
           fi
 
           body_file="$(mktemp)"
+          PROMPT_L2_BASIC="${{ steps.resolve_prompts.outputs.prompt_l2_basic }}"
+          PROMPT_L2_NOTIFICATION="${{ steps.resolve_prompts.outputs.prompt_l2_notification }}"
+          PROMPT_L2_FIXTURE="${{ steps.resolve_prompts.outputs.prompt_l2_fixture }}"
           {
             printf '%s\n' "@copilot"
             printf '\n'
@@ -171,15 +204,19 @@ jobs:
             printf 'Required behavior:\n'
             printf '1. Analyze changed source files and existing L2 tests.\n'
             printf '2. If L2 tests are already sufficient, comment findings and stop.\n'
-            printf '3. If L2 tests are missing, generate/update tests and open a separate PR.\n'
+            printf '3. If L2 tests are missing, generate/update tests and open a separate PR using the prompt templates below.\n'
             printf '4. Report initial CI status and document any issues found.\n'
             printf '5. Keep production-code changes minimal and justified.\n\n'
-            printf 'Prompt-mix guidance to apply:\n'
-            printf '%s\n' "- basic API tests"
-            printf '%s\n' "- helper/private method tests"
-            printf '%s\n' "- negative-case tests"
-            printf '%s\n' "- notification handler + notification tests"
-            printf '%s\n' "- refactor pass after coverage is in place"
+            printf '---\n\n'
+            printf '## Prompt Templates (pre-resolved from RDK-E prompt library)\n\n'
+            printf 'Apply the appropriate template(s) based on the coverage gaps you detect.\n'
+            printf 'Use the plugin name, method names, and source files from THIS repository as the inputs.\n\n'
+            printf '### Template: Basic L2 Tests (COM-RPC and JSON-RPC)\n\n'
+            printf '%s\n\n' "${PROMPT_L2_BASIC}"
+            printf '### Template: Notification Handler Tests\n\n'
+            printf '%s\n\n' "${PROMPT_L2_NOTIFICATION}"
+            printf '### Template: Test Fixture Setup\n\n'
+            printf '%s\n\n' "${PROMPT_L2_FIXTURE}"
           } > "$body_file"
 
           issue_url="$(gh issue create \
