@@ -211,6 +211,8 @@ jobs:
               "4. Report initial CI status and document any issues found.",
               "5. Keep production-code changes minimal and justified.",
               "",
+              "IMPORTANT: Create your PR on a branch named `L2/<short-description>` so the Valgrind CI workflow triggers automatically.",
+              "",
               "---",
               "",
               "## Prompt Templates (pre-resolved from RDK-E prompt library)",
