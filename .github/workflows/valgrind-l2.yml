@@ -1,0 +1,140 @@
+name: Valgrind L2 Tests
+
+on:
+  pull_request:
+    types: [labeled]
+    branches: [main, develop, 'sprint/**']
+
+permissions:
+  contents: read
+  issues: write
+  pull-requests: write
+
+jobs:
+  valgrind:
+    runs-on: ubuntu-latest
+    # Only run when the valgrind-ready label is applied on an L2 PR
+    if: |
+      github.event.label.name == 'valgrind-ready' &&
+      (startsWith(github.head_ref, 'L2/') || startsWith(github.event.pull_request.title, 'L2:'))
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Resolve linked L2 guardian issue
+        id: linked_issue
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const body = context.payload.pull_request?.body || '';
+            const match = body.match(/L2-Guardian-Issue:\s*#(\d+)/i);
+            const issueNumber = match ? match[1] : '';
+            core.setOutput('issue_number', issueNumber);
+            if (issueNumber) {
+              core.info(`Linked guardian issue detected: #${issueNumber}`);
+            } else {
+              core.info('No linked guardian issue marker found in PR body.');
+            }
+
+      - name: Install dependencies
+        run: sudo apt-get install -y valgrind cmake googletest libgtest-dev
+
+      - name: Build L2 tests
+        run: |
+          cmake -S Tests/L2Tests -B build/l2 -DCMAKE_BUILD_TYPE=Debug
+          cmake --build build/l2
+
+      - name: Run Valgrind
+        run: |
+          valgrind \
+            --tool=memcheck \
+            --leak-check=full \
+            --show-leak-kinds=all \
+            --error-exitcode=1 \
+            --xml=yes \
+            --xml-file=valgrind-results.xml \
+            ./build/l2/UserSettings_L2Test
+
+      - name: Upload Valgrind report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: valgrind-report
+          path: valgrind-results.xml
+
+      - name: Comment results on linked guardian issue
+        if: always() && steps.linked_issue.outputs.issue_number != ''
+        uses: actions/github-script@v7
+        env:
+          LINKED_ISSUE_NUMBER: ${{ steps.linked_issue.outputs.issue_number }}
+        with:
+          script: |
+            const fs = require('fs');
+            const hasXml = fs.existsSync('valgrind-results.xml');
+            const xml = hasXml
+              ? fs.readFileSync('valgrind-results.xml', 'utf8')
+              : 'No results file found.';
+            const passed = hasXml && !xml.includes('<error>');
+            const prAuthor = (context.payload.pull_request?.user?.login || '').toLowerCase();
+            const isCopilotAuthor = prAuthor.includes('copilot');
+            const runUrl = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
+            const issueNumber = Number(process.env.LINKED_ISSUE_NUMBER);
+            const maxRetries = 3;
+            const markerRegex = /<!--\s*l2-guardian-valgrind-retry:(\d+)\s*-->/i;
+
+            const comments = await github.paginate(github.rest.issues.listComments, {
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: issueNumber,
+              per_page: 100,
+            });
+
+            let highestAttempt = 0;
+            for (const c of comments) {
+              const m = (c.body || '').match(markerRegex);
+              if (m) {
+                highestAttempt = Math.max(highestAttempt, Number(m[1]));
+              }
+            }
+
+            const nextAttempt = highestAttempt + 1;
+            const canRetry = !passed && isCopilotAuthor && nextAttempt <= maxRetries;
+
+            let body;
+            if (passed) {
+              body = `✅ Valgrind passed for PR #${context.issue.number}. Workflow run: ${runUrl}\n\nNext step: human review.`;
+            } else if (canRetry) {
+              body = [
+                `❌ Valgrind failed for PR #${context.issue.number}. Attempt ${nextAttempt}/${maxRetries}.`,
+                `Workflow run: ${runUrl}`,
+                '',
+                '<!-- l2-guardian-valgrind-retry:' + nextAttempt + ' -->',
+                '@copilot',
+                '/agent l2-test-guardian',
+                `Valgrind failed for PR #${context.issue.number}. Please fix the memory issues, update the PR, and rerun CI.`,
+                '',
+                '```xml',
+                xml.slice(0, 3000),
+                '```',
+              ].join('\n');
+            } else {
+              const reason = !isCopilotAuthor
+                ? `PR authored by ${prAuthor} (non-agent)`
+                : `maximum auto-retries reached (${maxRetries})`;
+              body = [
+                `❌ Valgrind failed for PR #${context.issue.number}. ${reason}.`,
+                `Workflow run: ${runUrl}`,
+                '',
+                'Manual intervention required.',
+                '',
+                '```xml',
+                xml.slice(0, 3000),
+                '```',
+              ].join('\n');
+            }
+
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: issueNumber,
+              body,
+            });
