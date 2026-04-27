@@ -2,7 +2,7 @@ name: Valgrind L2 Tests
 
 on:
   pull_request:
-    types: [labeled]
+    types: [review_requested]
     branches: [main, develop, 'sprint/**']
 
 permissions:
@@ -13,10 +13,10 @@ permissions:
 jobs:
   valgrind:
     runs-on: ubuntu-latest
-    # Only run when the valgrind-ready label is applied on an L2 PR
+    # Run on L2 PRs when a Copilot-authored PR requests review
     if: |
-      github.event.label.name == 'valgrind-ready' &&
-      (startsWith(github.head_ref, 'L2/') || startsWith(github.event.pull_request.title, 'L2:'))
+      (contains(github.head_ref, 'L2') || contains(github.event.pull_request.title, 'L2')) &&
+      contains(github.event.pull_request.user.login, 'copilot')
     steps:
       - uses: actions/checkout@v4
 
