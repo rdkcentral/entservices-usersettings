@@ -208,7 +208,7 @@ jobs:
               "1. Analyze changed source files and existing L2 tests.",
               "2. If L2 tests are already sufficient, comment findings and stop.",
               "3. If L2 tests are missing, generate/update tests and open a separate PR using the prompt templates below.",
-              "4. When opening the PR, use a branch name starting with `L2/` and include this exact line in the PR body: `L2-Guardian-Issue: #<this_issue_number>`",
+              "4. When opening the PR, include this exact line in the PR body: `L2-Guardian-Issue: #<this_issue_number>`",
               "5. When you have finished generating ALL tests and pushed the final commit to the PR, request a review. This automatically triggers the Valgrind CI run.",
               "6. Report initial CI status and document any issues found.",
               "7. Keep production-code changes minimal and justified.",
