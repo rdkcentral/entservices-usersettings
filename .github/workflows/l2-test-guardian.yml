@@ -209,7 +209,7 @@ jobs:
               "2. If L2 tests are already sufficient, comment findings and stop.",
               "3. If L2 tests are missing, generate/update tests and open a separate PR using the prompt templates below.",
               "4. When opening the PR, use a branch name starting with `L2/` and include this exact line in the PR body: `L2-Guardian-Issue: #<this_issue_number>`",
-              "5. Only when you have finished generating ALL tests and pushed the final commit to the PR, add the label `valgrind-ready` to the PR. This triggers the Valgrind CI run.",
+              "5. When you have finished generating ALL tests and pushed the final commit to the PR, request a review. This automatically triggers the Valgrind CI run.",
               "6. Report initial CI status and document any issues found.",
               "7. Keep production-code changes minimal and justified.",
               "",
@@ -281,13 +281,13 @@ jobs:
 
           issue_number="${ISSUE_URL##*/}"
 
-          comment_body="$(printf '@copilot Two requirements when opening the L2 test PR:\n1. Include this exact line in the PR body: L2-Guardian-Issue: #%s\n2. Only after pushing your final commit with all tests complete, add the label `valgrind-ready` to the PR to trigger Valgrind CI.' "$issue_number")"
+          comment_body="$(printf '@copilot One requirement when opening the L2 test PR:\nInclude this exact line in the PR body: L2-Guardian-Issue: #%s\n\nWhen done generating tests and you request a review, the Valgrind CI workflow will automatically run.' "$issue_number")"
 
           gh issue comment "$issue_number" \
             --repo "$REPO" \
             --body "$comment_body"
 
-          echo "Posted linkage and label instructions on issue #$issue_number"
+          echo "Posted PR linkage instruction on issue #$issue_number"
           
       - name: Assign issue to Copilot agent
         if: steps.evaluate.outputs.needs_agent == 'true' && steps.dedupe.outputs.duplicate != 'true'
