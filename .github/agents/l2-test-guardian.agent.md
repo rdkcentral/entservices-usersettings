@@ -77,16 +77,11 @@ prompt library yourself — the templates are already embedded under the heading
 2. Commit generated tests and any minimal seams:
    - Commit 1: "feat: add L2 tests for [components/methods]"
    - Commit 2: "refactor: test seams for [components]" (if applicable)
-3. Resolve the upstream repository (the repo this fork was created from):
-   - Run: `gh repo view --json parent --jq '.parent | "\(.owner.login)/\(.name)"'`
-   - If the repo has no parent (it is not a fork), fall back to the current repo as the target.
-   - Store the result as `UPSTREAM_REPO` (e.g. `rdkcentral/entservices-usersettings`).
-4. Push the branch to the **fork** (current repo) and open a cross-fork PR targeting the upstream's `develop` branch:
-   - Run: `gh pr create --repo "$UPSTREAM_REPO" --head "<fork-owner>:<branch>" --base develop --title "..." --body "..."`
+3. Push branch and open a PR:
    - Title: `[TEST] L2 test coverage for PR #<original-pr>`
-   - Description: List of methods/handlers tested, any seams added, known limitations, and a link to the original PR
-   - The PR base must be `<upstream-repo>:develop`; the head must be `<fork-owner>:<branch>`
-5. Set test PR as **dependent on original PR** (if available)
+   - Description: List of methods/handlers tested, any seams added, known limitations
+   - Link to original PR
+4. Set test PR as **dependent on original PR** (if available)
 
 ### Phase 5: Report Status
 
