@@ -12,7 +12,7 @@ permissions:
 
 jobs:
   valgrind:
-    runs-on: comcast-ubuntu-latest
+    runs-on: ubuntu-latest
     # Run on L2 PRs when a Copilot-authored PR requests review
     if: |
       (contains(github.head_ref, 'L2') || contains(github.event.pull_request.title, 'L2')) &&
