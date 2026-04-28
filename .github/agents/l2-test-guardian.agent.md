@@ -77,11 +77,36 @@ prompt library yourself — the templates are already embedded under the heading
 2. Commit generated tests and any minimal seams:
    - Commit 1: "feat: add L2 tests for [components/methods]"
    - Commit 2: "refactor: test seams for [components]" (if applicable)
-3. Push branch and open a PR:
+3. Resolve the upstream repository (the repo this fork was created from):
+   - Run: `gh repo view --json parent --jq '.parent | "\(.owner.login)/\(.name)"'`
+   - If the repo has no parent (it is not a fork), fall back to the current repo as the target.
+   - Store the result as `UPSTREAM_REPO` (e.g. `rdkcentral/entservices-usersettings`).
+   - **Verify** by running `gh repo view "$UPSTREAM_REPO" --json nameWithOwner` and confirming the returned `nameWithOwner` matches `UPSTREAM_REPO`. If it does not match, stop and report an error.
+4. Determine the fork owner:
+   - Run: `gh repo view --json owner --jq '.owner.login'` against the **fork** (current repo).
+   - Store the result as `FORK_OWNER`.
+5. Check access to the upstream repo before attempting to create the PR:
+   - Run: `gh repo view "$UPSTREAM_REPO" --json viewerPermission --jq '.viewerPermission'`
+   - If the result is `WRITE`, `MAINTAIN`, or `ADMIN`, proceed to step 6.
+   - If the result is `READ`, `NONE`, or the command fails with a 403/404 error, **do not attempt to create the PR**. Instead, post a comment on the originating issue with the following information:
+     - That the branch `l2-test-coverage/<source-branch>-tests` has been pushed to the fork at `$FORK_OWNER/<repo>`.
+     - That the agent could not raise a PR against `$UPSTREAM_REPO` due to insufficient permissions (`viewerPermission` = `<result>`).
+     - Instructions for the human to manually raise the PR: `gh pr create --repo "$UPSTREAM_REPO" --head "$FORK_OWNER:<branch>" --base develop`
+     - Then stop — do not attempt any further PR creation steps.
+6. Push the branch to the **fork** (current repo) and open a cross-fork PR targeting the `develop` branch of the **upstream** repo:
+   - Push: `git push origin <branch>`
+   - Create PR: `gh pr create --repo "$UPSTREAM_REPO" --head "$FORK_OWNER:<branch>" --base develop --title "..." --body "..."`
+   - **Important**: `--repo` MUST be set to `$UPSTREAM_REPO`, NOT the fork. This is what places the PR in the upstream repo.
+   - **Important**: `--base develop` refers to the `develop` branch in the upstream repo (`$UPSTREAM_REPO`), NOT in the fork.
+   - If `gh pr create` exits with an error (e.g. 403 Forbidden, "Resource not accessible by integration", or similar), capture the error message and post a comment on the originating issue explaining:
+     - The exact error returned.
+     - That the branch is available at `$FORK_OWNER/<repo>:<branch>`.
+     - Instructions for the human to raise the PR manually: `gh pr create --repo "$UPSTREAM_REPO" --head "$FORK_OWNER:<branch>" --base develop`
+     - Then stop.
    - Title: `[TEST] L2 test coverage for PR #<original-pr>`
-   - Description: List of methods/handlers tested, any seams added, known limitations
-   - Link to original PR
-4. Set test PR as **dependent on original PR** (if available)
+   - Description: List of methods/handlers tested, any seams added, known limitations, and a link to the original PR
+   - After creation, confirm the PR URL contains the upstream repo path (e.g. `github.com/rdkcentral/entservices-usersettings/pull/...`), not the fork path. If it shows the fork, the PR was opened in the wrong repo — close it and retry with the correct `--repo` value.
+7. Set test PR as **dependent on original PR** (if available)
 
 ### Phase 5: Report Status
 
