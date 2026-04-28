@@ -88,33 +88,42 @@ prompt library yourself — the templates are already embedded under the heading
 4. Determine the fork owner:
    - Run: `gh repo view --json owner --jq '.owner.login'` against the **fork** (current repo).
    - Store the result as `FORK_OWNER`.
-5. Push the current branch updates using the agent's progress mechanism:
-   - Use `report_progress` to publish commits from `CURRENT_BRANCH` to the existing Copilot PR branch in the fork.
-   - Confirm the branch `FORK_OWNER/CURRENT_BRANCH` exists remotely after push.
-6. Check access to the upstream repo before attempting to create the PR:
-   - Run: `gh repo view "$UPSTREAM_REPO" --json viewerPermission --jq '.viewerPermission'`
-   - If the result is `WRITE`, `MAINTAIN`, or `ADMIN`, proceed to step 7.
-   - If the result is `READ`, `NONE`, or the command fails with a 403/404 error, **do not attempt to create the upstream PR**. Instead, post a comment on the originating issue with the following information:
-     - That commits are available on `$FORK_OWNER/$CURRENT_BRANCH`.
-     - That the agent could not raise a PR against `$UPSTREAM_REPO` due to insufficient permissions (`viewerPermission` = `<result>`).
-     - Instructions for the human to manually raise the PR: `gh pr create --repo "$UPSTREAM_REPO" --head "$FORK_OWNER:$CURRENT_BRANCH" --base develop`
-     - Then stop — do not attempt any further PR creation steps.
-7. Configure gh CLI credentials with a Personal Access Token (PAT) for upstream PR creation:
-   - **Prerequisite**: The repository must have a secret named `COPILOT_PAT` containing a GitHub Personal Access Token with `repo` scope. If this secret is not configured, upstream API calls and PR creation will fail — report this on the issue with instructions to add the secret.
-   - Configure gh CLI to use the token:
+5. Configure git and gh CLI credentials with the Personal Access Token (PAT):
+   - **Prerequisite**: The repository must have a secret named `COPILOT_PAT` containing a GitHub Personal Access Token with `repo` scope. If this secret is not configured, all subsequent steps will fail — report this on the issue with instructions to add the secret.
+   - Configure both git push and gh CLI to use the token:
      ```bash
      export GH_TOKEN=${{ secrets.COPILOT_PAT }}
      export GITHUB_TOKEN=${{ secrets.COPILOT_PAT }}
+     git config --global user.email "copilot@github.com"
+     git config --global user.name "Copilot Agent"
+     git remote set-url origin "https://$(echo ${{ secrets.COPILOT_PAT }} | cut -d: -f2)@github.com/$FORK_OWNER/entservices-usersettings.git"
      ```
-   - If the secret is not available or the token is invalid, capture the error and report on the issue that `COPILOT_PAT` must be configured with write access to both fork and upstream targets.
+   - If the secret is not available, the `${{ secrets.COPILOT_PAT }}` expansion will be empty — detect this and report on the issue that `COPILOT_PAT` must be configured.
+6. Push the current branch to the **fork** using the configured credentials:
+   - Run: `git push origin "$CURRENT_BRANCH"`
+   - If this fails with a 403 error, capture the error and post a comment on the originating issue:
+     - The exact error returned.
+     - That the `COPILOT_PAT` secret may not have sufficient scopes (ensure it has `repo` scope) or may be invalid/revoked.
+     - Instructions for manual recovery: `git push origin "$CURRENT_BRANCH"` from a local machine with your own credentials.
+   - Confirm the branch `$FORK_OWNER/$CURRENT_BRANCH` exists remotely after push.
+7. Check access to the upstream repo before attempting to create the PR:
+   - Run: `gh repo view "$UPSTREAM_REPO" --json viewerPermission --jq '.viewerPermission'`
+   - If the result is `WRITE`, `MAINTAIN`, or `ADMIN`, proceed to step 8.
+   - If the result is `READ`, `NONE`, or the command fails with a 403/404 error, **do not attempt to create the upstream PR**. Instead, post a comment on the originating issue with the following information:
+     - That commits are available on `$FORK_OWNER/$CURRENT_BRANCH`.
+     - That the agent could not raise a PR against `$UPSTREAM_REPO` due to insufficient permissions (`viewerPermission` = `<result>`).
+     - That this may indicate `COPILOT_PAT` does not have write access to the upstream repository.
+     - Instructions for the human to manually raise the PR: `gh pr create --repo "$UPSTREAM_REPO" --head "$FORK_OWNER:$CURRENT_BRANCH" --base develop`
+     - Then stop — do not attempt any further PR creation steps.
 8. Create a cross-fork PR targeting the `develop` branch of the **upstream** repo from the same `CURRENT_BRANCH` already used by the Copilot PR:
    - Create PR: `gh pr create --repo "$UPSTREAM_REPO" --head "$FORK_OWNER:$CURRENT_BRANCH" --base develop --title "..." --body "..."`
    - **Important**: `--repo` MUST be set to `$UPSTREAM_REPO`, NOT the fork. This is what places the PR in the upstream repo.
    - **Important**: `--base develop` refers to the `develop` branch in the upstream repo (`$UPSTREAM_REPO`), NOT in the fork.
    - This upstream PR and the Copilot PR should reference the same head branch and therefore the same commits.
-   - If `gh pr create` exits with an error (e.g. 403 Forbidden, "Resource not accessible by integration", or similar), capture the error message and post a comment on the originating issue explaining:
+   - If `gh pr create` exits with an error (e.g. 403 Forbidden, "Resource not accessible by integration", GraphQL error, or similar), capture the error message and post a comment on the originating issue explaining:
      - The exact error returned.
-     - That the branch is available at `$FORK_OWNER:$CURRENT_BRANCH` and can be used to manually create the PR.
+     - That the branch is available at `$FORK_OWNER:$CURRENT_BRANCH`.
+     - That this may indicate `COPILOT_PAT` does not have write access to the upstream repository, or the token is invalid.
      - Instructions for the human to raise the PR manually: `gh pr create --repo "$UPSTREAM_REPO" --head "$FORK_OWNER:$CURRENT_BRANCH" --base develop`
      - Then stop.
    - Title: `[TEST] L2 test coverage for PR #<original-pr>`
