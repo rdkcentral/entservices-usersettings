@@ -92,7 +92,7 @@ class AsyncHandlerMock_UserSetting
         MOCK_METHOD(void, onVoiceGuidanceHintsChanged, (const bool hints));
         MOCK_METHOD(void, onContentPinChanged, (const string& contentPin));
         MOCK_METHOD(void, onAudioOutputChanged, (const bool enabled));
-        MOCK_METHOD(void, onResolutionChanged, (const string resolution));
+        MOCK_METHOD(void, onResolutionChanged, (const string& resolution));
 };
 
 class NotificationHandler : public Exchange::IUserSettings::INotification {
@@ -376,7 +376,7 @@ protected:
       void onVoiceGuidanceHintsChanged(const bool hints);
       void onContentPinChanged(const string& contentPin);
       void onAudioOutputChanged(const bool enabled);
-      void onResolutionChanged(const string resolution);
+      void onResolutionChanged(const string& resolution);
 
       uint32_t WaitForRequestStatus(uint32_t timeout_ms,UserSettingsL2test_async_events_t expected_status);
       uint32_t CreateUserSettingInterfaceObjectUsingComRPCConnection();
@@ -726,7 +726,7 @@ void UserSettingTest::onAudioOutputChanged(const bool enabled)
     m_condition_variable.notify_one();
 }
 
-void UserSettingTest::onResolutionChanged(const string resolution)
+void UserSettingTest::onResolutionChanged(const string& resolution)
 {
     TEST_LOG("onResolutionChanged event triggered ***\n");
     std::unique_lock<std::mutex> lock(m_mutex);
