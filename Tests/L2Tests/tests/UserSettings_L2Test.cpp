@@ -62,6 +62,8 @@ typedef enum : uint32_t {
     UserSettings_onVoiceGuidanceRateChanged = 0x00000010,
     UserSettings_onVoiceGuidanceHintsChanged = 0x00000011,
     UserSettings_onContentPinChanged = 0x00000012,
+    UserSettings_onAudioOutputChanged = 0x00000013,
+    UserSettings_onResolutionChanged = 0x00000014,
     UserSettings_StateInvalid = 0x00000000
 }UserSettingsL2test_async_events_t;
 
@@ -89,6 +91,8 @@ class AsyncHandlerMock_UserSetting
         MOCK_METHOD(void, onVoiceGuidanceRateChanged, (const double rate));
         MOCK_METHOD(void, onVoiceGuidanceHintsChanged, (const bool hints));
         MOCK_METHOD(void, onContentPinChanged, (const string& contentPin));
+        MOCK_METHOD(void, onAudioOutputChanged, (const bool enabled));
+        MOCK_METHOD(void, onResolutionChanged, (const string& resolution));
 };
 
 class NotificationHandler : public Exchange::IUserSettings::INotification {
@@ -325,6 +329,32 @@ class NotificationHandler : public Exchange::IUserSettings::INotification {
 
         }
 
+        /* NOTE: OnAudioOutputChanged and OnResolutionChanged are new methods introduced in
+         * plugin/IUserSettings.h (PR #70). These will be declared with 'override' once
+         * Exchange::IUserSettings::INotification in the installed interface is updated. */
+        void OnAudioOutputChanged(bool enabled)
+        {
+            TEST_LOG("OnAudioOutputChanged event triggered ***\n");
+            std::unique_lock<std::mutex> lock(m_mutex);
+            std::string str = enabled ? "true" : "false";
+
+            TEST_LOG("OnAudioOutputChanged received: %s\n", str.c_str());
+            /* Notify the requester thread. */
+            m_event_signalled |= UserSettings_onAudioOutputChanged;
+            m_condition_variable.notify_one();
+        }
+
+        void OnResolutionChanged(const string& resolution)
+        {
+            TEST_LOG("OnResolutionChanged event triggered ***\n");
+            std::unique_lock<std::mutex> lock(m_mutex);
+
+            TEST_LOG("OnResolutionChanged received: %s\n", resolution.c_str());
+            /* Notify the requester thread. */
+            m_event_signalled |= UserSettings_onResolutionChanged;
+            m_condition_variable.notify_one();
+        }
+
         uint32_t WaitForRequestStatus(uint32_t timeout_ms, UserSettingsL2test_async_events_t expected_status)
         {
             std::unique_lock<std::mutex> lock(m_mutex);
@@ -371,6 +401,8 @@ protected:
       void onVoiceGuidanceRateChanged(const double rate);
       void onVoiceGuidanceHintsChanged(const bool hints);
       void onContentPinChanged(const string& contentPin);
+      void onAudioOutputChanged(const bool enabled);
+      void onResolutionChanged(const string& resolution);
 
       uint32_t WaitForRequestStatus(uint32_t timeout_ms,UserSettingsL2test_async_events_t expected_status);
       uint32_t CreateUserSettingInterfaceObjectUsingComRPCConnection();
@@ -705,6 +737,31 @@ void UserSettingTest::onContentPinChanged(const string& contentPin)
     m_event_signalled |= UserSettings_onContentPinChanged;
     m_condition_variable.notify_one();
 
+}
+
+void UserSettingTest::onAudioOutputChanged(const bool enabled)
+{
+    TEST_LOG("onAudioOutputChanged event triggered ***\n");
+    std::unique_lock<std::mutex> lock(m_mutex);
+
+    std::string str = enabled ? "true" : "false";
+    TEST_LOG("onAudioOutputChanged received: %s\n", str.c_str());
+
+    /* Notify the requester thread. */
+    m_event_signalled |= UserSettings_onAudioOutputChanged;
+    m_condition_variable.notify_one();
+}
+
+void UserSettingTest::onResolutionChanged(const string& resolution)
+{
+    TEST_LOG("onResolutionChanged event triggered ***\n");
+    std::unique_lock<std::mutex> lock(m_mutex);
+
+    TEST_LOG("onResolutionChanged received: %s\n", resolution.c_str());
+
+    /* Notify the requester thread. */
+    m_event_signalled |= UserSettings_onResolutionChanged;
+    m_condition_variable.notify_one();
 }
 
 MATCHER_P(MatchRequestStatusString, data, "")
@@ -3605,4 +3662,325 @@ TEST_F(UserSettingTest, PersistentstoreIsNotActivatedWhileUserSettingsActivating
     }
 }
 
+/**
+ * @brief Test for setAudioOutputEnabled/getAudioOutputEnabled via JSON-RPC and
+ *        the onAudioOutputChanged notification.
+ *
+ * New methods added in plugin/IUserSettings.h (PR #70):
+ *   - SetAudioOutputEnabled(bool enabled)
+ *   - GetAudioOutputEnabled(bool& enabled)
+ *   - INotification::OnAudioOutputChanged(bool enabled)
+ *
+ * These tests will be fully exercised once the corresponding methods are
+ * integrated into the installed Exchange::IUserSettings interface and
+ * exposed via JSON-RPC in the UserSettings plugin.
+ */
+TEST_F(UserSettingTest, onAudioOutputChangedEvent)
+{
+    time_t testcase_entry, testcase_exit, wait_entry, wait_exit;
+    time(&testcase_entry);
+    TEST_LOG("current time stamp at entry %ld\n", testcase_entry);
 
+    JSONRPC::LinkType<Core::JSON::IElement> jsonrpc(USERSETTING_CALLSIGN, USERSETTINGL2TEST_CALLSIGN);
+    StrictMock<AsyncHandlerMock_UserSetting> async_handler;
+    uint32_t status = Core::ERROR_GENERAL;
+    uint32_t signalled = UserSettings_StateInvalid;
+    bool audioOutputEnabled = true;
+    JsonObject result_json;
+    Core::JSON::Boolean result_bool;
+
+    WaitGroup wg;
+    wg.Add(1);
+
+    TEST_LOG("Testing AudioOutputEnabled Success");
+    status = jsonrpc.Subscribe<JsonObject>(JSON_TIMEOUT,
+                                       _T("onAudioOutputChanged"),
+                                       [this, &async_handler, &wg](const JsonObject& parameters) {
+                                           bool enabled = parameters["enabled"].Boolean();
+                                           TEST_LOG("onAudioOutputChanged callback triggered with value: %d", enabled);
+                                           async_handler.onAudioOutputChanged(enabled);
+                                           wg.Done();
+                                       });
+    EXPECT_EQ(Core::ERROR_NONE, status);
+
+    EXPECT_CALL(async_handler, onAudioOutputChanged(MatchRequestStatusBool(audioOutputEnabled)))
+    .WillOnce(Invoke(this, &UserSettingTest::onAudioOutputChanged));
+
+    JsonObject paramsAudioOutput;
+    paramsAudioOutput["enabled"] = true;
+    status = InvokeServiceMethod("org.rdk.UserSettings", "setAudioOutputEnabled", paramsAudioOutput, result_json);
+    EXPECT_EQ(status, Core::ERROR_NONE);
+
+    time(&wait_entry);
+    TEST_LOG("current time stamp before wait %ld\n", wait_entry);
+
+    wg.Wait();
+
+    signalled = WaitForRequestStatus(JSON_TIMEOUT, UserSettings_onAudioOutputChanged);
+    EXPECT_TRUE(signalled & UserSettings_onAudioOutputChanged);
+
+    time(&wait_exit);
+    TEST_LOG("current time stamp after wait %ld\n", wait_exit);
+
+    /* Unregister for events. */
+    jsonrpc.Unsubscribe(JSON_TIMEOUT, _T("onAudioOutputChanged"));
+    EXPECT_EQ(status, Core::ERROR_NONE);
+
+    status = InvokeServiceMethod("org.rdk.UserSettings", "getAudioOutputEnabled", result_bool);
+    EXPECT_EQ(status, Core::ERROR_NONE);
+    EXPECT_TRUE(result_bool.Value());
+
+    time(&testcase_exit);
+    TEST_LOG("current time stamp at end %ld\n", testcase_exit);
+}
+
+/**
+ * @brief Test for setDisplayResolution/getDisplayResolution via JSON-RPC and
+ *        the onResolutionChanged notification.
+ *
+ * New methods added in plugin/IUserSettings.h (PR #70):
+ *   - SetDisplayResolution(Resolution resolution)
+ *   - GetDisplayResolution(Resolution& resolution)
+ *   - INotification::OnResolutionChanged(Resolution resolution)
+ *
+ * These tests will be fully exercised once the corresponding methods are
+ * integrated into the installed Exchange::IUserSettings interface and
+ * exposed via JSON-RPC in the UserSettings plugin.
+ */
+TEST_F(UserSettingTest, onResolutionChangedEvent)
+{
+    time_t testcase_entry, testcase_exit, wait_entry, wait_exit;
+    time(&testcase_entry);
+    TEST_LOG("current time stamp at entry %ld\n", testcase_entry);
+
+    JSONRPC::LinkType<Core::JSON::IElement> jsonrpc(USERSETTING_CALLSIGN, USERSETTINGL2TEST_CALLSIGN);
+    StrictMock<AsyncHandlerMock_UserSetting> async_handler;
+    uint32_t status = Core::ERROR_GENERAL;
+    uint32_t signalled = UserSettings_StateInvalid;
+    string resolution = "1080p";
+    JsonObject result_json;
+    Core::JSON::String result_string;
+
+    WaitGroup wg;
+    wg.Add(1);
+
+    TEST_LOG("Testing DisplayResolution Success");
+    status = jsonrpc.Subscribe<JsonObject>(JSON_TIMEOUT,
+                                       _T("onResolutionChanged"),
+                                       [this, &async_handler, &wg](const JsonObject& parameters) {
+                                           string res = parameters["resolution"].String();
+                                           TEST_LOG("onResolutionChanged callback triggered with value: %s", res.c_str());
+                                           async_handler.onResolutionChanged(res);
+                                           wg.Done();
+                                       });
+    EXPECT_EQ(Core::ERROR_NONE, status);
+
+    EXPECT_CALL(async_handler, onResolutionChanged(MatchRequestStatusString(resolution)))
+    .WillOnce(Invoke(this, &UserSettingTest::onResolutionChanged));
+
+    JsonObject paramsResolution;
+    paramsResolution["resolution"] = "1080p";
+    status = InvokeServiceMethod("org.rdk.UserSettings", "setDisplayResolution", paramsResolution, result_json);
+    EXPECT_EQ(status, Core::ERROR_NONE);
+
+    time(&wait_entry);
+    TEST_LOG("current time stamp before wait %ld\n", wait_entry);
+
+    wg.Wait();
+
+    signalled = WaitForRequestStatus(JSON_TIMEOUT, UserSettings_onResolutionChanged);
+    EXPECT_TRUE(signalled & UserSettings_onResolutionChanged);
+
+    time(&wait_exit);
+    TEST_LOG("current time stamp after wait %ld\n", wait_exit);
+
+    /* Unregister for events. */
+    jsonrpc.Unsubscribe(JSON_TIMEOUT, _T("onResolutionChanged"));
+    EXPECT_EQ(status, Core::ERROR_NONE);
+
+    status = InvokeServiceMethod("org.rdk.UserSettings", "getDisplayResolution", result_string);
+    EXPECT_EQ(status, Core::ERROR_NONE);
+    EXPECT_EQ(result_string.Value(), "1080p");
+
+    time(&testcase_exit);
+    TEST_LOG("current time stamp at end %ld\n", testcase_exit);
+}
+
+/**
+ * @brief COM-RPC test for SetAudioOutputEnabled/GetAudioOutputEnabled methods
+ *        introduced in plugin/IUserSettings.h (PR #70).
+ *
+ * NOTE: This test calls SetAudioOutputEnabled() and GetAudioOutputEnabled() via
+ * COM-RPC on m_usersettingsplugin (Exchange::IUserSettings*). It will compile and
+ * execute fully once these methods are added to the installed
+ * Exchange::IUserSettings interface.
+ */
+TEST_F(UserSettingTest, SetAndGetAudioOutputEnabledUsingComRPCConnection)
+{
+    uint32_t status = Core::ERROR_GENERAL;
+    bool getBoolValue = false;
+    Core::Sink<NotificationHandler> notification;
+    uint32_t signalled = UserSettings_StateInvalid;
+
+    if (CreateUserSettingInterfaceObjectUsingComRPCConnection() != Core::ERROR_NONE)
+    {
+        TEST_LOG("Invalid Client_UserSettings");
+    }
+    else
+    {
+        ASSERT_TRUE(m_controller_usersettings != nullptr);
+        if (m_controller_usersettings)
+        {
+            ASSERT_TRUE(m_usersettingsplugin != nullptr);
+            if (m_usersettingsplugin)
+            {
+                m_usersettingsplugin->Register(&notification);
+
+                TEST_LOG("Setting AudioOutputEnabled to true via COM-RPC");
+                status = m_usersettingsplugin->SetAudioOutputEnabled(true);
+                EXPECT_EQ(status, Core::ERROR_NONE);
+                if (status != Core::ERROR_NONE)
+                {
+                    std::string errorMsg = "COM-RPC returned error " + std::to_string(status) + " (" + std::string(Core::ErrorToString(status)) + ")";
+                    TEST_LOG("Err: %s", errorMsg.c_str());
+                }
+                signalled = notification.WaitForRequestStatus(JSON_TIMEOUT, UserSettings_onAudioOutputChanged);
+                EXPECT_TRUE(signalled & UserSettings_onAudioOutputChanged);
+
+                TEST_LOG("Getting AudioOutputEnabled via COM-RPC");
+                status = m_usersettingsplugin->GetAudioOutputEnabled(getBoolValue);
+                EXPECT_EQ(getBoolValue, true);
+                EXPECT_EQ(status, Core::ERROR_NONE);
+                if (status != Core::ERROR_NONE)
+                {
+                    std::string errorMsg = "COM-RPC returned error " + std::to_string(status) + " (" + std::string(Core::ErrorToString(status)) + ")";
+                    TEST_LOG("Err: %s", errorMsg.c_str());
+                }
+                TEST_LOG("AudioOutputEnabled value: %s", getBoolValue ? "true" : "false");
+
+                TEST_LOG("Setting AudioOutputEnabled to false via COM-RPC");
+                status = m_usersettingsplugin->SetAudioOutputEnabled(false);
+                EXPECT_EQ(status, Core::ERROR_NONE);
+                if (status != Core::ERROR_NONE)
+                {
+                    std::string errorMsg = "COM-RPC returned error " + std::to_string(status) + " (" + std::string(Core::ErrorToString(status)) + ")";
+                    TEST_LOG("Err: %s", errorMsg.c_str());
+                }
+                signalled = notification.WaitForRequestStatus(JSON_TIMEOUT, UserSettings_onAudioOutputChanged);
+                EXPECT_TRUE(signalled & UserSettings_onAudioOutputChanged);
+
+                status = m_usersettingsplugin->GetAudioOutputEnabled(getBoolValue);
+                EXPECT_EQ(getBoolValue, false);
+                EXPECT_EQ(status, Core::ERROR_NONE);
+                TEST_LOG("AudioOutputEnabled value after disable: %s", getBoolValue ? "true" : "false");
+
+                m_usersettingsplugin->Unregister(&notification);
+                m_usersettingsplugin->Release();
+            }
+            else
+            {
+                TEST_LOG("m_usersettingsplugin is NULL");
+            }
+            m_controller_usersettings->Release();
+        }
+        else
+        {
+            TEST_LOG("m_controller_usersettings is NULL");
+        }
+    }
+}
+
+/**
+ * @brief COM-RPC test for SetDisplayResolution/GetDisplayResolution methods
+ *        introduced in plugin/IUserSettings.h (PR #70).
+ *
+ * NOTE: This test calls SetDisplayResolution() and GetDisplayResolution() via
+ * COM-RPC on m_usersettingsplugin (Exchange::IUserSettings*). It will compile and
+ * execute fully once these methods are added to the installed
+ * Exchange::IUserSettings interface.
+ */
+TEST_F(UserSettingTest, SetAndGetDisplayResolutionUsingComRPCConnection)
+{
+    uint32_t status = Core::ERROR_GENERAL;
+    Core::Sink<NotificationHandler> notification;
+    uint32_t signalled = UserSettings_StateInvalid;
+
+    if (CreateUserSettingInterfaceObjectUsingComRPCConnection() != Core::ERROR_NONE)
+    {
+        TEST_LOG("Invalid Client_UserSettings");
+    }
+    else
+    {
+        ASSERT_TRUE(m_controller_usersettings != nullptr);
+        if (m_controller_usersettings)
+        {
+            ASSERT_TRUE(m_usersettingsplugin != nullptr);
+            if (m_usersettingsplugin)
+            {
+                m_usersettingsplugin->Register(&notification);
+
+                TEST_LOG("Setting DisplayResolution to RESOLUTION_1080P via COM-RPC");
+                status = m_usersettingsplugin->SetDisplayResolution(Exchange::IUserSettings::Resolution::RESOLUTION_1080P);
+                EXPECT_EQ(status, Core::ERROR_NONE);
+                if (status != Core::ERROR_NONE)
+                {
+                    std::string errorMsg = "COM-RPC returned error " + std::to_string(status) + " (" + std::string(Core::ErrorToString(status)) + ")";
+                    TEST_LOG("Err: %s", errorMsg.c_str());
+                }
+                signalled = notification.WaitForRequestStatus(JSON_TIMEOUT, UserSettings_onResolutionChanged);
+                EXPECT_TRUE(signalled & UserSettings_onResolutionChanged);
+
+                TEST_LOG("Getting DisplayResolution via COM-RPC");
+                Exchange::IUserSettings::Resolution resolution = Exchange::IUserSettings::Resolution::RESOLUTION_720P;
+                status = m_usersettingsplugin->GetDisplayResolution(resolution);
+                EXPECT_EQ(resolution, Exchange::IUserSettings::Resolution::RESOLUTION_1080P);
+                EXPECT_EQ(status, Core::ERROR_NONE);
+                if (status != Core::ERROR_NONE)
+                {
+                    std::string errorMsg = "COM-RPC returned error " + std::to_string(status) + " (" + std::string(Core::ErrorToString(status)) + ")";
+                    TEST_LOG("Err: %s", errorMsg.c_str());
+                }
+                TEST_LOG("DisplayResolution value: %d", static_cast<int>(resolution));
+
+                TEST_LOG("Setting DisplayResolution to RESOLUTION_4K via COM-RPC");
+                status = m_usersettingsplugin->SetDisplayResolution(Exchange::IUserSettings::Resolution::RESOLUTION_4K);
+                EXPECT_EQ(status, Core::ERROR_NONE);
+                if (status != Core::ERROR_NONE)
+                {
+                    std::string errorMsg = "COM-RPC returned error " + std::to_string(status) + " (" + std::string(Core::ErrorToString(status)) + ")";
+                    TEST_LOG("Err: %s", errorMsg.c_str());
+                }
+                signalled = notification.WaitForRequestStatus(JSON_TIMEOUT, UserSettings_onResolutionChanged);
+                EXPECT_TRUE(signalled & UserSettings_onResolutionChanged);
+
+                status = m_usersettingsplugin->GetDisplayResolution(resolution);
+                EXPECT_EQ(resolution, Exchange::IUserSettings::Resolution::RESOLUTION_4K);
+                EXPECT_EQ(status, Core::ERROR_NONE);
+                TEST_LOG("DisplayResolution value after 4K change: %d", static_cast<int>(resolution));
+
+                TEST_LOG("Setting DisplayResolution to RESOLUTION_720P via COM-RPC");
+                status = m_usersettingsplugin->SetDisplayResolution(Exchange::IUserSettings::Resolution::RESOLUTION_720P);
+                EXPECT_EQ(status, Core::ERROR_NONE);
+                signalled = notification.WaitForRequestStatus(JSON_TIMEOUT, UserSettings_onResolutionChanged);
+                EXPECT_TRUE(signalled & UserSettings_onResolutionChanged);
+
+                status = m_usersettingsplugin->GetDisplayResolution(resolution);
+                EXPECT_EQ(resolution, Exchange::IUserSettings::Resolution::RESOLUTION_720P);
+                EXPECT_EQ(status, Core::ERROR_NONE);
+                TEST_LOG("DisplayResolution value after 720P change: %d", static_cast<int>(resolution));
+
+                m_usersettingsplugin->Unregister(&notification);
+                m_usersettingsplugin->Release();
+            }
+            else
+            {
+                TEST_LOG("m_usersettingsplugin is NULL");
+            }
+            m_controller_usersettings->Release();
+        }
+        else
+        {
+            TEST_LOG("m_controller_usersettings is NULL");
+        }
+    }
+}
