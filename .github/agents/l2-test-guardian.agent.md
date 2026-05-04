@@ -90,11 +90,12 @@ prompt library yourself — the templates are already embedded under the heading
    - Store the result as `FORK_OWNER`.
    - Run: `gh repo view --json name --jq '.name'` and store as `FORK_REPO`.
 5. Configure fork credentials and push commits to the existing Copilot PR branch:
-   - **Prerequisite**: Configure a **Copilot Cloud agent secret** named `FORK_PAT` with read/write access to the fork repository.
-    - Preflight diagnostics (never print token values):
-       - Check token presence only: `test -n "$FORK_PAT" && echo "FORK_PAT:present" || echo "FORK_PAT:missing"`
-       - Log current branch and remotes: `git branch --show-current` and `git remote -v`
-       - Record this status block in the issue comment if any later step fails.
+   - **Prerequisite**: Configure an **environment secret** named `FORK_PAT` that is available to the Cloud agent runtime and has read/write access to the fork repository.
+   - **Note**: Repository/Actions secrets alone may not be available unless mapped into the Cloud agent environment.
+   - Preflight diagnostics (never print token values):
+     - Check token presence only: `test -n "$FORK_PAT" && echo "FORK_PAT:present" || echo "FORK_PAT:missing"`
+     - Log current branch and remotes: `git branch --show-current` and `git remote -v`
+     - Record this status block in the issue comment if any later step fails.
    - Validate and configure git for authenticated push:
      ```bash
      test -n "$FORK_PAT" || { echo "FORK_PAT missing"; exit 1; }
@@ -106,25 +107,26 @@ prompt library yourself — the templates are already embedded under the heading
    - If push fails (e.g. 403), capture the exact error and report that `FORK_PAT` is missing/invalid or lacks fork write permission.
    - Confirm branch `$FORK_OWNER/$CURRENT_BRANCH` exists remotely after push.
 6. Configure upstream credentials for PR creation only:
-   - **Prerequisite**: Configure a **Copilot Cloud agent secret** named `COPILOT_PAT` with access to the upstream repository.
-    - Preflight diagnostics (never print token values):
-       - Check token presence only: `test -n "$COPILOT_PAT" && echo "COPILOT_PAT:present" || echo "COPILOT_PAT:missing"`
-       - After export, run upstream visibility check and log result: `gh repo view "$UPSTREAM_REPO" --json nameWithOwner,viewerPermission`
-       - Record this status block in the issue comment if PR creation fails.
+   - **Prerequisite**: Configure an **environment secret** named `COPILOT_PAT` that is available to the Cloud agent runtime and has required access to the upstream repository.
+   - **Recommended minimum for upstream PR creation**: Pull requests (read/write), Contents (read), Metadata (read).
+   - Preflight diagnostics (never print token values):
+     - Check token presence only: `test -n "$COPILOT_PAT" && echo "COPILOT_PAT:present" || echo "COPILOT_PAT:missing"`
+     - After export, run upstream visibility check and log result: `gh repo view "$UPSTREAM_REPO" --json nameWithOwner,viewerPermission`
+     - Record this status block in the issue comment if PR creation fails.
    - Validate and export token for gh API calls:
      ```bash
      test -n "$COPILOT_PAT" || { echo "COPILOT_PAT missing"; exit 1; }
      export GH_TOKEN="$COPILOT_PAT"
      export GITHUB_TOKEN="$COPILOT_PAT"
      ```
-   - If `COPILOT_PAT` is empty/missing, report on the issue that Cloud agent secret `COPILOT_PAT` is not configured for this repository.
+   - If `COPILOT_PAT` is empty/missing, report on the issue that environment secret `COPILOT_PAT` is not configured or not attached to the Cloud agent environment.
 7. Check access to the upstream repo before attempting to create the PR:
    - Run: `gh repo view "$UPSTREAM_REPO" --json viewerPermission --jq '.viewerPermission'`
    - If the result is `WRITE`, `MAINTAIN`, or `ADMIN`, proceed to step 8.
    - If the result is `READ`, `NONE`, or the command fails with a 403/404 error, **do not attempt to create the upstream PR**. Instead, post a comment on the originating issue with the following information:
      - That commits are available on `$FORK_OWNER/$CURRENT_BRANCH`.
      - That the agent could not raise a PR against `$UPSTREAM_REPO` due to insufficient permissions (`viewerPermission` = `<result>`).
-      - That this may indicate `COPILOT_PAT` does not have required upstream permissions.
+       - That this may indicate `COPILOT_PAT` is missing from the environment or lacks required upstream permissions.
      - Instructions for the human to manually raise the PR: `gh pr create --repo "$UPSTREAM_REPO" --head "$FORK_OWNER:$CURRENT_BRANCH" --base develop`
      - Then stop — do not attempt any further PR creation steps.
 8. Create a cross-fork PR targeting the `develop` branch of the **upstream** repo from the same `CURRENT_BRANCH` already used by the Copilot PR:
