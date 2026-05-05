@@ -33,6 +33,7 @@ The plugin manages a complete spectrum of user preferences across five key categ
    - Voice guidance for visually impaired navigation
    - Adjustable voice guidance speech rate (0.1x to 10x)
    - Voice guidance hints and prompts
+   - Screen reader speed control (uint8 speed value)
 
 5. **Privacy Settings**
    - Privacy mode configuration for data collection preferences
@@ -74,6 +75,7 @@ The plugin manages a complete spectrum of user preferences across five key categ
 - High contrast mode for users with visual impairments
 - Audio description support for video content
 - Adjustable voice speed accommodates different user needs
+- Screen reader speed control for customized text-to-speech pacing
 
 ### Content Management and Compliance
 **Scenario**: Regulatory compliance and content filtering
