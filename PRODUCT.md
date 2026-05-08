@@ -33,6 +33,7 @@ The plugin manages a complete spectrum of user preferences across five key categ
    - Voice guidance for visually impaired navigation
    - Adjustable voice guidance speech rate (0.1x to 10x)
    - Voice guidance hints and prompts
+   - Screen reader speed change notifications via `OnScreenReaderSpeedChanged` (speed as unsigned 8-bit value)
 
 5. **Privacy Settings**
    - Privacy mode configuration for data collection preferences
@@ -89,6 +90,7 @@ The plugin exposes a comprehensive JSON-RPC API with methods for:
 - **Getters**: Retrieve individual settings or bulk settings via Inspector interface
 - **Setters**: Update individual settings with validation
 - **Events**: Real-time notifications for all setting changes
+  - Includes forwarding of `OnScreenReaderSpeedChanged` notifications from implementation to JSON-RPC clients
 
 ### COM-RPC Interfaces
 For native service integration:

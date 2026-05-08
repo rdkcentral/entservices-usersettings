@@ -127,6 +127,7 @@ The plugin manages 18 different user settings categorized into:
    - Voice guidance enabled (boolean)
    - Voice guidance rate (numeric: 0.1-10)
    - Voice guidance hints (boolean)
+   - Screen reader speed persistence key: `screenReaderSpeed`
 
 5. **Privacy Settings**
    - Privacy mode (string)
@@ -141,6 +142,11 @@ The plugin manages 18 different user settings categorized into:
 - Validates input parameters before processing
 - Gracefully handles PersistentStore unavailability
 - Default value fallback mechanism
+
+### Notification Bridging
+- The plugin notification sink forwards implementation callbacks to JSON-RPC events through `Exchange::JUserSettings::Event::*`.
+- `OnScreenReaderSpeedChanged(uint8_t speed)` is bridged to `Exchange::JUserSettings::Event::OnScreenReaderSpeedChanged(...)` for client subscriptions.
+- **[Verification Needed]** This PR adds the notification bridge and storage key constant; full end-to-end producer/consumer flow for `screenReaderSpeed` should be validated with interface consumers.
 
 ## Inspector Interface
 
