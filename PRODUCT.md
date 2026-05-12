@@ -32,6 +32,7 @@ The plugin manages a complete spectrum of user preferences across five key categ
    - High contrast display mode for enhanced visibility
    - Voice guidance for visually impaired navigation
    - Adjustable voice guidance speech rate (0.1x to 10x)
+   - Screen reader speed preference for accessibility narration **[Verification Needed: confirm full API/config exposure path in implementation]**
    - Voice guidance hints and prompts
 
 5. **Privacy Settings**
