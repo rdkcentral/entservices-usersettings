@@ -112,7 +112,7 @@ jobs:
         with:
           repository: rdkcentral/entservices-persistentstore
           path: entservices-persistentstore
-          ref: feature/RDKEMW-16743
+          ref: develop
 
       - name: Checkout entservices-usersettings
         if: ${{ inputs.caller_source == 'local' }}
