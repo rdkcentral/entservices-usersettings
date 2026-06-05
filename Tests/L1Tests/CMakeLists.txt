@@ -28,7 +28,7 @@ set (TEST_LIB
     ${NAMESPACE}Plugins::${NAMESPACE}Plugins
 )
 
-set (TEST_INC ../../helpers)
+set (TEST_INC)
 
 #########################################################################################
 # add_plugin_test_ex: Macro to add plugin tests, it will append to TEST_SRC, TEST_INC,
@@ -98,7 +98,7 @@ macro(add_plugin_test plugin_name test_files)
 endmacro()
 
 # PLUGIN_USERSETTINGS
-set (USERSETTINGS_INC ${CMAKE_SOURCE_DIR}/plugin ${CMAKE_SOURCE_DIR}/helpers)
+set (USERSETTINGS_INC ${CMAKE_SOURCE_DIR}/plugin ${CMAKE_SOURCE_DIR}/../entservices-helpers/helpers)
 set (USERSETTINGS_LIBS ${NAMESPACE}UserSettings ${NAMESPACE}UserSettingsImplementation)
 add_plugin_test_ex(PLUGIN_USERSETTINGS tests/test_UserSettings.cpp "${USERSETTINGS_INC}" "${USERSETTINGS_LIBS}")
 
