@@ -362,6 +362,7 @@ jobs:
           -S "$GITHUB_WORKSPACE/entservices-helpers"
           -B build/entservices-helpers
           -DCMAKE_INSTALL_PREFIX="$GITHUB_WORKSPACE/install/usr"
+          -include $GITHUB_WORKSPACE/entservices-testframework/Tests/mocks/tr181api.h
           -DCMAKE_MODULE_PATH="$GITHUB_WORKSPACE/install/tools/cmake"
           -DUSE_THUNDER_R4=ON
           -DHIDE_NON_EXTERNAL_SYMBOLS=OFF
