@@ -105,7 +105,7 @@ jobs:
         with:
           repository: rdkcentral/entservices-testframework
           path: entservices-testframework
-          ref: feature/helpers_v1
+          ref: 1.0.14
 
       - name: Checkout entservices-persistentstore
         uses: actions/checkout@v3
@@ -126,14 +126,14 @@ jobs:
         with:
           repository: rdkcentral/entservices-usersettings
           path: entservices-usersettings
-          ref: feature/RDKEMW-16743
+          ref: develop
 
       - name: Checkout entservices-persistentstore
         uses: actions/checkout@v3
         with:
           repository: rdkcentral/entservices-persistentstore
           path: entservices-persistentstore
-          ref: feature/RDKEMW-13477
+          ref: develop
 
       - name: Apply  ThunderTools
         run: |
@@ -354,7 +354,7 @@ jobs:
         with:
           repository: rdkcentral/entservices-helpers
           path: entservices-helpers
-          ref: feature/RDKEMW-16743
+          ref: develop
 
       - name: Build entservices-helpers
         run: >
