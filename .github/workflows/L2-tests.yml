@@ -100,7 +100,7 @@ jobs:
         with:
           repository: rdkcentral/entservices-usersettings
           path: entservices-usersettings
-          ref: feature/RDKEMW-16743
+          ref: develop
 
       - name: Checkout entservices-persistentstore
         uses: actions/checkout@v3
