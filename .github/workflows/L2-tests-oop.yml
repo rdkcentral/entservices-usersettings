@@ -133,12 +133,6 @@ jobs:
           path: entservices-persistentstore
           ref: develop
 
-      - name: Apply  ThunderTools
-        run: |
-          cd $GITHUB_WORKSPACE/ThunderTools
-          patch -p1 < $GITHUB_WORKSPACE/entservices-testframework/patches/00010-R4.4.6-Add-support-for-project-dir.patch
-          cd -
-
       - name: Build ThunderTools
         run: >
           cmake
