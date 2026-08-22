@@ -757,7 +757,7 @@ TEST_F(UserSettingTest, getMigrationStatecase)
     string preferredCaptionsLanguages = "en,es";
     string preferredService = "CC3";
     string viewingRestrictions = "ALWAYS";
-    string contentPin = "1234";
+    string contentPin = "123456";
     double rate = 1;
 
     Core::JSON::String result_string;
@@ -2060,7 +2060,7 @@ TEST_F(UserSettingTest, onContentPinChangedEvent)
     uint32_t status = Core::ERROR_GENERAL;
     uint32_t signalled = UserSettings_StateInvalid;
 
-    string contentPin = "1234";
+    string contentPin = "123456";
 
     Core::JSON::String result_string;
     Core::JSON::Boolean result_bool;
@@ -2118,6 +2118,123 @@ TEST_F(UserSettingTest, onContentPinChangedEvent)
     time(&testcase_exit);
     TEST_LOG("current time stramp at end %ld\n", testcase_exit);
 
+}
+
+/* Verify that SetContentPin rejects a 4-digit PIN (old format) and returns ERROR_INVALID_PARAMETER.
+   The regex was updated from ^\d{4}$ to ^\d{6}$, so 4-digit PINs must be rejected. */
+TEST_F(UserSettingTest, SetContentPin_InvalidFourDigitPinReturnsError)
+{
+    uint32_t status = Core::ERROR_GENERAL;
+    Core::Sink<NotificationHandler> notification;
+
+    if (CreateUserSettingInterfaceObjectUsingComRPCConnection() != Core::ERROR_NONE)
+    {
+        TEST_LOG("Invalid Client_UserSettings");
+    }
+    else
+    {
+        ASSERT_TRUE(m_controller_usersettings != nullptr);
+        if (m_controller_usersettings)
+        {
+            ASSERT_TRUE(m_usersettingsplugin != nullptr);
+            if (m_usersettingsplugin)
+            {
+                m_usersettingsplugin->Register(&notification);
+
+                TEST_LOG("Verifying that a 4-digit PIN is rejected after regex update to 6 digits");
+                status = m_usersettingsplugin->SetContentPin("1234");
+                EXPECT_EQ(status, Core::ERROR_INVALID_PARAMETER);
+                if (status != Core::ERROR_INVALID_PARAMETER)
+                {
+                    std::string errorMsg = "COM-RPC returned error " + std::to_string(status) + " (" + std::string(Core::ErrorToString(status)) + ")";
+                    TEST_LOG("Err: %s", errorMsg.c_str());
+                }
+
+                /* Verify no notification is triggered for an invalid PIN */
+                uint32_t signalled = notification.WaitForRequestStatus(JSON_TIMEOUT, UserSettings_onContentPinChanged);
+                EXPECT_FALSE(signalled & UserSettings_onContentPinChanged);
+
+                m_usersettingsplugin->Unregister(&notification);
+                m_usersettingsplugin->Release();
+            }
+            else
+            {
+                TEST_LOG("m_usersettingsplugin is NULL");
+            }
+            m_controller_usersettings->Release();
+        }
+        else
+        {
+            TEST_LOG("m_controller_usersettings is NULL");
+        }
+    }
+}
+
+/* Verify that SetContentPin rejects non-numeric and invalid-length PINs. */
+TEST_F(UserSettingTest, SetContentPin_InvalidFormatPinReturnsError)
+{
+    uint32_t status = Core::ERROR_GENERAL;
+    Core::Sink<NotificationHandler> notification;
+
+    if (CreateUserSettingInterfaceObjectUsingComRPCConnection() != Core::ERROR_NONE)
+    {
+        TEST_LOG("Invalid Client_UserSettings");
+    }
+    else
+    {
+        ASSERT_TRUE(m_controller_usersettings != nullptr);
+        if (m_controller_usersettings)
+        {
+            ASSERT_TRUE(m_usersettingsplugin != nullptr);
+            if (m_usersettingsplugin)
+            {
+                m_usersettingsplugin->Register(&notification);
+
+                TEST_LOG("Verifying that a non-numeric PIN is rejected");
+                status = m_usersettingsplugin->SetContentPin("abcdef");
+                EXPECT_EQ(status, Core::ERROR_INVALID_PARAMETER);
+                if (status != Core::ERROR_INVALID_PARAMETER)
+                {
+                    std::string errorMsg = "COM-RPC returned error " + std::to_string(status) + " (" + std::string(Core::ErrorToString(status)) + ")";
+                    TEST_LOG("Err: %s", errorMsg.c_str());
+                }
+
+                TEST_LOG("Verifying that a 5-digit PIN is rejected");
+                status = m_usersettingsplugin->SetContentPin("12345");
+                EXPECT_EQ(status, Core::ERROR_INVALID_PARAMETER);
+                if (status != Core::ERROR_INVALID_PARAMETER)
+                {
+                    std::string errorMsg = "COM-RPC returned error " + std::to_string(status) + " (" + std::string(Core::ErrorToString(status)) + ")";
+                    TEST_LOG("Err: %s", errorMsg.c_str());
+                }
+
+                TEST_LOG("Verifying that a 7-digit PIN is rejected");
+                status = m_usersettingsplugin->SetContentPin("1234567");
+                EXPECT_EQ(status, Core::ERROR_INVALID_PARAMETER);
+                if (status != Core::ERROR_INVALID_PARAMETER)
+                {
+                    std::string errorMsg = "COM-RPC returned error " + std::to_string(status) + " (" + std::string(Core::ErrorToString(status)) + ")";
+                    TEST_LOG("Err: %s", errorMsg.c_str());
+                }
+
+                /* Verify no notification is triggered for any invalid PIN */
+                uint32_t signalled = notification.WaitForRequestStatus(JSON_TIMEOUT, UserSettings_onContentPinChanged);
+                EXPECT_FALSE(signalled & UserSettings_onContentPinChanged);
+
+                m_usersettingsplugin->Unregister(&notification);
+                m_usersettingsplugin->Release();
+            }
+            else
+            {
+                TEST_LOG("m_usersettingsplugin is NULL");
+            }
+            m_controller_usersettings->Release();
+        }
+        else
+        {
+            TEST_LOG("m_controller_usersettings is NULL");
+        }
+    }
 }
 
 /* Activating UserSettings and Persistent store plugins and UserSettings namespace has no entries in db.
@@ -3087,7 +3204,7 @@ TEST_F(UserSettingTest,SetAndGetMethodsUsingComRpcConnectionSuccessCase)
                 }
 
                 TEST_LOG("Setting and Getting ContentPin Values");
-                status = m_usersettingsplugin->SetContentPin("1234");
+                status = m_usersettingsplugin->SetContentPin("123456");
                 EXPECT_EQ(status,Core::ERROR_NONE);
                 if (status != Core::ERROR_NONE)
                 {
@@ -3098,7 +3215,7 @@ TEST_F(UserSettingTest,SetAndGetMethodsUsingComRpcConnectionSuccessCase)
                 EXPECT_TRUE(signalled & UserSettings_onContentPinChanged);
 
                 status = m_usersettingsplugin->GetContentPin(getStringValue);
-                EXPECT_EQ(getStringValue, "1234");
+                EXPECT_EQ(getStringValue, "123456");
                 EXPECT_EQ(status,Core::ERROR_NONE);
                 if (status != Core::ERROR_NONE)
                 {
