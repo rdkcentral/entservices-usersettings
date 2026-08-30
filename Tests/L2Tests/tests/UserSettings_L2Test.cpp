@@ -38,10 +38,10 @@
 #define USERSETTINGL2TEST_CALLSIGN _T("L2tests.1")
 
 using ::testing::NiceMock;
-using namespace WPEFramework;
+using namespace Thunder;
 using testing::StrictMock;
-using ::WPEFramework::Exchange::IStore2;
-using ::WPEFramework::Exchange::IUserSettings;
+using ::Thunder::Exchange::IStore2;
+using ::Thunder::Exchange::IUserSettings;
 
 typedef enum : uint32_t {
     UserSettings_onAudioDescriptionChanged = 0x00000001,
