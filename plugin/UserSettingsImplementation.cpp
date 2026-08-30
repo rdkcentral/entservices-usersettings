@@ -25,7 +25,7 @@
 #include <fstream>
 #include "tracing/Logging.h"
 
-namespace WPEFramework {
+namespace Thunder {
 namespace Plugin {
 
 const std::map<string, string> UserSettingsImplementation::usersettingsDefaultMap = 
@@ -100,7 +100,7 @@ uint32_t UserSettingsImplementation::Configure(PluginHost::IShell* service)
         _service->AddRef();
         result = Core::ERROR_NONE;
 
-        _remotStoreObject = _service->QueryInterfaceByCallsign<WPEFramework::Exchange::IStore2>("org.rdk.PersistentStore");
+        _remotStoreObject = _service->QueryInterfaceByCallsign<Thunder::Exchange::IStore2>("org.rdk.PersistentStore");
         if (_remotStoreObject != nullptr)
         {
             registerEventHandlers();
@@ -1365,4 +1365,4 @@ Core::hresult UserSettingsImplementation::Delete(const Exchange::BackupContext& 
 }
 
 } // namespace Plugin
-} // namespace WPEFramework
+} // namespace Thunder

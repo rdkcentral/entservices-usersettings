@@ -31,7 +31,7 @@
 #include "tracing/Logging.h"
 #include <mutex>
 
-namespace WPEFramework {
+namespace Thunder {
 namespace Plugin {
 
     class UserSettings: public PluginHost::IPlugin, public PluginHost::JSONRPC
@@ -227,4 +227,4 @@ namespace Plugin {
     };
 
 } // namespace Plugin
-} // namespace WPEFramework
+} // namespace Thunder

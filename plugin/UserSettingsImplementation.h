@@ -54,7 +54,7 @@
 #define USERSETTINGS_VOICE_GUIDANCE_HINTS_KEY                 "voiceGuidanceHints"
 #define USERSETTINGS_CONTENT_PIN_KEY                          "contentPin"
 
-namespace WPEFramework {
+namespace Thunder {
 namespace Plugin {
     class UserSettingsImplementation : public Exchange::IUserSettings,
                                        public Exchange::IUserSettingsInspector,
@@ -161,11 +161,7 @@ namespace Plugin {
 
        public:
             static Core::ProxyType<Core::IDispatch> Create(UserSettingsImplementation *usersettingImplementation, Event event, JsonValue params) {
-#ifndef USE_THUNDER_R4
-                return (Core::proxy_cast<Core::IDispatch>(Core::ProxyType<Job>::Create(usersettingImplementation, event, params)));
-#else
                 return (Core::ProxyType<Core::IDispatch>(Core::ProxyType<Job>::Create(usersettingImplementation, event, params)));
-#endif
             }
 
             virtual void Dispatch() {
@@ -254,4 +250,4 @@ namespace Plugin {
         friend class Job;
     };
 } // namespace Plugin
-} // namespace WPEFramework
+} // namespace Thunder

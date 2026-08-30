@@ -23,7 +23,7 @@
 #define API_VERSION_NUMBER_MINOR 3
 #define API_VERSION_NUMBER_PATCH 0
 
-namespace WPEFramework
+namespace Thunder
 {
 
     namespace {
@@ -44,7 +44,7 @@ namespace WPEFramework
     {
 
     /*
-     *Register UserSettings module as wpeframework plugin
+     *Register UserSettings module as thunder plugin
      **/
     SERVICE_REGISTRATION(UserSettings, API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, API_VERSION_NUMBER_PATCH);
 
@@ -99,7 +99,7 @@ namespace WPEFramework
 
             // Register for notifications
             _userSetting->Register(&_usersettingsNotification);
-            // Invoking Plugin API register to wpeframework
+            // Invoking Plugin API register to thunder
             Exchange::JUserSettings::Register(*this, _userSetting);
 
             _userSettingsInspector = _userSetting->QueryInterface<Exchange::IUserSettingsInspector>();
@@ -195,4 +195,4 @@ namespace WPEFramework
         }
     }
 } // namespace Plugin
-} // namespace WPEFramework
+} // namespace Thunder
