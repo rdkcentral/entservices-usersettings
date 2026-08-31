@@ -240,7 +240,7 @@ namespace Plugin {
         mutable Core::CriticalSection _adminLock;
         Exchange::IStore2* _remotStoreObject;
         std::list<Exchange::IUserSettings::INotification*> _userSettingNotification;
-        Core::Sink<Store2Notification> _storeNotification;
+        Core::SinkType<Store2Notification> _storeNotification;
         bool _registeredEventHandlers;
         PluginHost::IShell* _service;
 

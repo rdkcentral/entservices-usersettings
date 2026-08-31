@@ -221,7 +221,7 @@ namespace Plugin {
             uint32_t _connectionId{};
             Exchange::IUserSettings* _userSetting{};
             Exchange::IUserSettingsInspector* _userSettingsInspector{};
-            Core::Sink<Notification> _usersettingsNotification;
+            Core::SinkType<Notification> _usersettingsNotification;
             Exchange::IConfiguration* configure;
             Exchange::IBackupProvider* _backupProvider{};
     };

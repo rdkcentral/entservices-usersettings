@@ -2126,7 +2126,7 @@ TEST_F(UserSettingTest, VerifyDefaultValues)
 {
     uint32_t status = Core::ERROR_GENERAL;
     uint32_t signalled = UserSettings_StateInvalid;
-    Core::Sink<NotificationHandler> notification;
+    Core::SinkType<NotificationHandler> notification;
     bool defaultBooleanValue = true;
     string defaultStrValue = "eng";
     double defaultDoubleValue;
@@ -2543,7 +2543,7 @@ TEST_F(UserSettingTest,SetAndGetMethodsUsingComRpcConnectionSuccessCase)
     bool getBoolValue = false;
     string getStringValue = "";
     double getDoubleValue = 0;
-    Core::Sink<NotificationHandler> notification;
+    Core::SinkType<NotificationHandler> notification;
     uint32_t signalled = UserSettings_StateInvalid;
 
     if (CreateUserSettingInterfaceObjectUsingComRPCConnection() != Core::ERROR_NONE)
@@ -3341,7 +3341,7 @@ TEST_F(UserSettingTest, NoDBFileInPersistentstoreErrorCase)
     uint32_t status = Core::ERROR_GENERAL;
     bool getBoolValue = false;
     string getStringValue = "";
-    Core::Sink<NotificationHandler> notification;
+    Core::SinkType<NotificationHandler> notification;
     uint32_t signalled = UserSettings_StateInvalid;
 
     if (CreateUserSettingInterfaceObjectUsingComRPCConnection() != Core::ERROR_NONE)
@@ -3447,7 +3447,7 @@ TEST_F(UserSettingTest, PersistentstoreIsDeactivatedErrorCase)
     uint32_t status = Core::ERROR_GENERAL;
     bool getBoolValue = false;
     string getStringValue = "";
-    Core::Sink<NotificationHandler> notification;
+    Core::SinkType<NotificationHandler> notification;
     uint32_t signalled = UserSettings_StateInvalid;
 
     status = DeactivateService("org.rdk.PersistentStore");
@@ -3530,7 +3530,7 @@ TEST_F(UserSettingTest, PersistentstoreIsNotActivatedWhileUserSettingsActivating
     uint32_t status = Core::ERROR_GENERAL;
     bool getBoolValue = false;
     string getStringValue = "";
-    Core::Sink<NotificationHandler> notification;
+    Core::SinkType<NotificationHandler> notification;
     uint32_t signalled = UserSettings_StateInvalid;
 
     status = DeactivateService("org.rdk.UserSettings");
