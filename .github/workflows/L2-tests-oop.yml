@@ -223,7 +223,6 @@ jobs:
           &&
           mkdir -p
           headers
-          headers/rdk/ds
           headers/rdk/iarmbus
           headers/rdk/iarmmgrs-hal
           headers/systemservices
@@ -235,28 +234,6 @@ jobs:
           cd headers
           &&
           touch
-          rdk/ds/host.hpp
-          rdk/ds/videoOutputPort.hpp
-          rdk/ds/videoOutputPortType.hpp
-          rdk/ds/videoOutputPortConfig.hpp
-          rdk/ds/videoResolution.hpp
-          rdk/ds/audioOutputPort.hpp
-          rdk/ds/audioOutputPortType.hpp
-          rdk/ds/sleepMode.hpp
-          rdk/ds/frontPanelConfig.hpp
-          rdk/ds/frontPanelTextDisplay.hpp
-          rdk/ds/hdmiIn.hpp
-          rdk/ds/compositeIn.hpp
-          rdk/ds/audioOutputPortConfig.hpp
-          rdk/ds/exception.hpp
-          rdk/ds/dsError.h
-          rdk/ds/dsMgr.h
-          rdk/ds/manager.hpp
-          rdk/ds/dsTypes.h
-          rdk/ds/dsUtl.h
-          rdk/ds/audioOutputPortType.hpp
-          rdk/ds/audioOutputPortConfig.hpp
-          rdk/ds/pixelResolution.hpp
           rdk/iarmbus/libIARM.h
           rdk/iarmbus/libIBus.h
           rdk/iarmbus/libIBusDaemon.h
@@ -284,8 +261,6 @@ jobs:
           tr181api.h
           list.hpp
           dsDisplay.h
-          rdk/ds/AudioStereoMode.hpp
-          rdk/ds/VideoDFC.hpp
           dsRpc.h
           Dobby/DobbyProtocol.h
           Dobby/DobbyProxy.h
@@ -388,7 +363,6 @@ jobs:
           -DPLUGIN_PERSISTENTSTORE_PATH="/tmp/secure/persistent/rdkservicestore"
           -DPLUGIN_PERSISTENTSTORE_LEGACYPATH="/tmp/persistent/rdkservicestore"
           -I $GITHUB_WORKSPACE/entservices-testframework/Tests/headers
-          -I $GITHUB_WORKSPACE/entservices-testframework/Tests/headers/rdk/ds
           -I $GITHUB_WORKSPACE/entservices-testframework/Tests/headers/rdk/iarmbus
           -I $GITHUB_WORKSPACE/entservices-testframework/Tests/headers/rdk/iarmmgrs-hal
           -I $GITHUB_WORKSPACE/entservices-testframework/Tests/headers/systemservices
@@ -400,7 +374,6 @@ jobs:
           -I $GITHUB_WORKSPACE/entservices-testframework/Tests/headers/Dobby
           -I $GITHUB_WORKSPACE/entservices-testframework/Tests/headers/Dobby/Public/Dobby
           -I $GITHUB_WORKSPACE/entservices-testframework/Tests/headers/Dobby/IpcService
-          -include $GITHUB_WORKSPACE/entservices-testframework/Tests/mocks/devicesettings.h
           -include $GITHUB_WORKSPACE/entservices-testframework/Tests/mocks/Iarm.h
           -include $GITHUB_WORKSPACE/entservices-testframework/Tests/mocks/Rfc.h
           -include $GITHUB_WORKSPACE/entservices-testframework/Tests/mocks/RBus.h
@@ -437,7 +410,6 @@ jobs:
           -DPLUGIN_PERSISTENTSTORE_LEGACYPATH="/tmp/persistent/rdkservicestore"
           -DPLUGIN_STORAGE_MANAGER_PATH="/tmp/persistent/storageManager"
           -DCOMCAST_CONFIG=OFF
-          -DCMAKE_DISABLE_FIND_PACKAGE_DS=ON
           -DCMAKE_DISABLE_FIND_PACKAGE_IARMBus=ON
           -DCMAKE_DISABLE_FIND_PACKAGE_Udev=ON
           -DCMAKE_DISABLE_FIND_PACKAGE_RFC=ON
@@ -446,7 +418,6 @@ jobs:
           -DUSE_THUNDER_R4=ON
           -DPLUGIN_L2Tests=OFF
           -DRDK_SERVICE_L2_TEST=OFF
-          -DDS_FOUND=ON
           -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
           &&
           cmake --build build/entservices-persistentstore -j6
@@ -473,7 +444,6 @@ jobs:
           -DPLUGIN_PERSISTENTSTORE_PATH="/tmp/secure/persistent/rdkservicestore"
           -DPLUGIN_PERSISTENTSTORE_LEGACYPATH="/tmp/persistent/rdkservicestore"
           -I $GITHUB_WORKSPACE/entservices-testframework/Tests/headers
-          -I $GITHUB_WORKSPACE/entservices-testframework/Tests/headers/rdk/ds
           -I $GITHUB_WORKSPACE/entservices-testframework/Tests/headers/rdk/iarmbus
           -I $GITHUB_WORKSPACE/entservices-testframework/Tests/headers/rdk/iarmmgrs-hal
           -I $GITHUB_WORKSPACE/entservices-testframework/Tests/headers/systemservices
@@ -482,7 +452,6 @@ jobs:
           -I $GITHUB_WORKSPACE/entservices-helpers/helpers
           -I $GITHUB_WORKSPACE/install/usr/include
           -I ./usr/include/libdrm
-          -include $GITHUB_WORKSPACE/entservices-testframework/Tests/mocks/devicesettings.h
           -include $GITHUB_WORKSPACE/entservices-testframework/Tests/mocks/Iarm.h
           -include $GITHUB_WORKSPACE/entservices-testframework/Tests/mocks/Rfc.h
           -include $GITHUB_WORKSPACE/entservices-testframework/Tests/mocks/RBus.h
@@ -511,7 +480,6 @@ jobs:
           -DPLUGIN_PERSISTENTSTORE_PATH="/tmp/secure/persistent/rdkservicestore"
           -DPLUGIN_PERSISTENTSTORE_LEGACYPATH="/tmp/persistent/rdkservicestore"
           -DCOMCAST_CONFIG=OFF
-          -DCMAKE_DISABLE_FIND_PACKAGE_DS=ON
           -DCMAKE_DISABLE_FIND_PACKAGE_IARMBus=ON
           -DCMAKE_DISABLE_FIND_PACKAGE_Udev=ON
           -DCMAKE_DISABLE_FIND_PACKAGE_RFC=ON
@@ -520,7 +488,6 @@ jobs:
           -DUSE_THUNDER_R4=ON
           -DPLUGIN_L2Tests=ON
           -DRDK_SERVICE_L2_TEST=ON
-          -DDS_FOUND=ON
           -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
           -DPLUGIN_ANALYTICS_SIFT_BACKEND=ON
           -DPLUGIN_ANALYTICS_SIFT_2_0_ENABLED="true"
@@ -554,7 +521,6 @@ jobs:
           -DPLUGIN_PERSISTENTSTORE_PATH="/tmp/secure/persistent/rdkservicestore"
           -DPLUGIN_PERSISTENTSTORE_LEGACYPATH="/tmp/persistent/rdkservicestore"
           -I $GITHUB_WORKSPACE/entservices-testframework/Tests/headers
-          -I $GITHUB_WORKSPACE/entservices-testframework/Tests/headers/rdk/ds
           -I $GITHUB_WORKSPACE/entservices-testframework/Tests/headers/rdk/iarmbus
           -I $GITHUB_WORKSPACE/entservices-testframework/Tests/headers/rdk/iarmmgrs-hal
           -I $GITHUB_WORKSPACE/entservices-testframework/Tests/headers/systemservices
@@ -562,7 +528,6 @@ jobs:
           -I $GITHUB_WORKSPACE/entservices-helpers/helpers
           -I $GITHUB_WORKSPACE/install/usr/include
           -I ./usr/include/libdrm
-          -include $GITHUB_WORKSPACE/entservices-testframework/Tests/mocks/devicesettings.h
           -include $GITHUB_WORKSPACE/entservices-testframework/Tests/mocks/Iarm.h
           -include $GITHUB_WORKSPACE/entservices-testframework/Tests/mocks/Rfc.h
           -include $GITHUB_WORKSPACE/entservices-testframework/Tests/mocks/RBus.h
@@ -589,7 +554,6 @@ jobs:
           -DPLUGIN_PERSISTENTSTORE_PATH="/tmp/secure/persistent/rdkservicestore"
           -DPLUGIN_PERSISTENTSTORE_LEGACYPATH="/tmp/persistent/rdkservicestore"
           -DCOMCAST_CONFIG=OFF
-          -DCMAKE_DISABLE_FIND_PACKAGE_DS=ON
           -DCMAKE_DISABLE_FIND_PACKAGE_IARMBus=ON
           -DCMAKE_DISABLE_FIND_PACKAGE_Udev=ON
           -DCMAKE_DISABLE_FIND_PACKAGE_RFC=ON
@@ -599,7 +563,6 @@ jobs:
           -DPLUGIN_L2Tests=ON
           -DRDK_SERVICE_L2_TEST=ON
           -DL2_TEST_OOP_RPC=ON
-          -DDS_FOUND=ON
           -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
           &&
           cmake --build build/entservices-testframework -j8
