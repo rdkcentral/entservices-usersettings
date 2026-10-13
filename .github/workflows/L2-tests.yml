@@ -255,8 +255,6 @@ jobs:
           tvTypesODM.h
           tr181api.h
           list.hpp
-          dsDisplay.h
-          dsRpc.h
           Dobby/DobbyProtocol.h
           Dobby/DobbyProxy.h
           Dobby/Public/Dobby/IDobbyProxy.h
